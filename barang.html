@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SiPinjam UPT — Kelola Barang</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/components.css">
+</head>
+<body>
+
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar-app"></aside>
+
+    <div class="main-wrapper">
+      <header class="topbar" id="topbar-app"></header>
+
+      <main class="content-container">
+        <!-- Page Header -->
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Inventaris Perlengkapan UPT</h1>
+            <p class="page-subtitle">Daftar lengkap aset perlengkapan kampus, edit detail barang, dan kelola jumlah stok</p>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="search-box" class="form-control" style="max-width: 200px;" placeholder="Cari perlengkapan..." oninput="filterTable('#barang-table', this.value)">
+            <button class="btn btn-primary" onclick="openAddModal()">
+              <i class="ti ti-plus"></i> Tambah Barang
+            </button>
+          </div>
+        </div>
+
+        <!-- Inventory List Table -->
+        <div class="table-container">
+          <table class="table" id="barang-table">
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>Kode</th>
+                <th>Nama Perlengkapan</th>
+                <th>Kategori</th>
+                <th>Stok Total</th>
+                <th>Stok Tersedia</th>
+                <th>Kondisi</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="barang-list">
+              <tr>
+                <td colspan="8" class="text-center" style="padding: 60px 0; color: var(--text-secondary);">
+                  <i class="ti ti-loader animate-spin" style="font-size: 24px; display: block; margin-bottom: 8px;"></i>
+                  Memuat data inventaris...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Add / Edit Barang Modal -->
+  <div class="modal-overlay" id="barang-modal">
+    <div class="modal">
+      <form id="barang-form" onsubmit="handleBarangSubmit(event)">
+        <!-- Hidden input for edit mode -->
+        <input type="hidden" id="barang-id" name="id" value="">
+        
+        <div class="modal-header">
+          <h3 class="modal-title" id="modal-title">Tambah Perlengkapan</h3>
+          <button type="button" class="modal-close" onclick="closeModal('barang-modal')">&times;</button>
+        </div>
+        
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label required" for="nama_barang">Nama Perlengkapan</label>
+            <input type="text" id="nama_barang" name="nama_barang" class="form-control" placeholder="Contoh: Kamera DSLR Canon 800D" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label required" for="kode_barang">Kode Barang</label>
+              <input type="text" id="kode_barang" name="kode_barang" class="form-control" placeholder="Contoh: ELK-001" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label required" for="kategori_id">Kategori</label>
+              <select id="kategori_id" name="kategori_id" class="form-control" required>
+                <option value="">-- Pilih Kategori --</option>
+                <option value="1">Elektronik</option>
+                <option value="2">Meja & Kursi</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label required" for="stok_total">Total Stok</label>
+              <input type="number" id="stok_total" name="stok_total" class="form-control" min="1" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label required" for="kondisi">Kondisi Barang</label>
+              <select id="kondisi" name="kondisi" class="form-control" required>
+                <option value="Baik">Baik (Normal)</option>
+                <option value="Butuh Perbaikan">Butuh Perbaikan</option>
+                <option value="Rusak">Rusak Total</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top: 15px;">
+            <label class="form-label" for="foto_barang_file">Foto Perlengkapan</label>
+            <div style="display: flex; gap: 12px; align-items: center; margin-top: 6px;">
+              <input type="file" id="foto_barang_file" accept="image/*" class="form-control" style="flex: 1; padding: 6px 12px;" onchange="uploadFotoBarang()">
+              <input type="hidden" id="foto_path" name="foto" value="">
+              <div id="foto-preview-container" style="display: none; width: 48px; height: 48px; border-radius: 8px; border: 1px solid var(--border-color); overflow: hidden; background-color: #f8fafc; flex-shrink: 0; position: relative;">
+                <img id="foto-preview-img" src="" alt="Preview" style="width: 100%; height: 100%; object-fit: cover;">
+                <button type="button" onclick="hapusFotoBarang()" style="position: absolute; top: 2px; right: 2px; background: rgba(0,0,0,0.6); color: white; border: none; border-radius: 50%; width: 16px; height: 16px; font-size: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer;">&times;</button>
+              </div>
+            </div>
+            <p style="font-size: 11px; color: var(--text-secondary); margin-top: 5px;">Format yang diizinkan: PNG, JPG, JPEG, WEBP, GIF. Maks. 5MB.</p>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('barang-modal')">Batal</button>
+          <button type="submit" class="btn btn-primary btn-sm" id="btn-submit">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../js/helpers.js"></script>
+  <script>
+    let allBarang = [];
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      // 1. Guard admin
+      await requireAdmin();
+
+      // 2. Render layout
+      renderSidebar("barang");
+      renderTopbar("Kelola Inventaris");
+
+      // 3. Load item list
+      loadBarang();
+    });
+
+    async function loadBarang() {
+      const tbody = document.getElementById("barang-list");
+      try {
+        const res = await fetch("../api/barang/index.php");
+        const data = await res.json();
+
+        if (data.success) {
+          allBarang = data.data || [];
+          renderBarangTable(allBarang);
+        } else {
+          showToast(data.error || "Gagal memuat inventaris", "danger");
+        }
+      } catch (err) {
+        console.error(err);
+        showToast("Kesalahan koneksi database", "danger");
+      }
+    }
+
+    function getIconByCategory(categoryId) {
+      if (categoryId == 1) return 'ti ti-device-laptop';
+      if (categoryId == 2) return 'ti ti-table';
+      return 'ti ti-box';
+    }
+
+    async function uploadFotoBarang() {
+      const fileInput = document.getElementById("foto_barang_file");
+      if (!fileInput.files || fileInput.files.length === 0) return;
+
+      const file = fileInput.files[0];
+      const formData = new FormData();
+      formData.append("file_foto", file);
+
+      const previewContainer = document.getElementById("foto-preview-container");
+      const previewImg = document.getElementById("foto-preview-img");
+      
+      try {
+        showToast("Sedang mengunggah foto...", "info");
+        const res = await fetch("../api/barang/upload_foto.php", {
+          method: "POST",
+          body: formData
+        });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById("foto_path").value = data.file_path;
+          previewImg.src = "../" + data.file_path;
+          previewContainer.style.display = "block";
+          showToast("Foto berhasil diunggah!", "success");
+        } else {
+          showToast(data.error || "Gagal mengunggah foto", "danger");
+          fileInput.value = "";
+        }
+      } catch (err) {
+        console.error(err);
+        showToast("Terjadi kesalahan koneksi", "danger");
+        fileInput.value = "";
+      }
+    }
+
+    function hapusFotoBarang() {
+      document.getElementById("foto_barang_file").value = "";
+      document.getElementById("foto_path").value = "";
+      document.getElementById("foto-preview-container").style.display = "none";
+      document.getElementById("foto-preview-img").src = "";
+    }
+
+    function renderBarangTable(items) {
+      const tbody = document.getElementById("barang-list");
+      tbody.innerHTML = "";
+
+      if (items.length === 0) {
+        tbody.innerHTML = `
+          <tr class="empty-row">
+            <td colspan="8" class="text-center" style="padding: 60px 0; color: var(--text-secondary)">
+              <i class="ti ti-package" style="font-size: 32px; color: #d4d4d4; display: block; margin-bottom: 8px;"></i>
+              Belum ada data perlengkapan.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      items.forEach((item, idx) => {
+        let conditionBadge = `<span class="badge badge-approved" style="background-color: #dcfce7; color: #14532d;">Baik</span>`;
+        if (item.kondisi !== 'Baik') {
+          conditionBadge = `<span class="badge badge-pending" style="background-color: #ffe4e6; color: #881337;">${item.kondisi}</span>`;
+        }
+
+        const fallbackIcon = getIconByCategory(item.kategori_id);
+        const imageHtml = item.foto 
+          ? `<img src="../${item.foto}" alt="${item.nama_barang}" style="width: 100%; height: 100%; object-fit: cover;">`
+          : `<i class="${fallbackIcon}" style="font-size: 18px; color: var(--text-secondary);"></i>`;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${idx + 1}</td>
+          <td style="font-family: monospace; font-weight: bold;">${item.kode_barang}</td>
+          <td>
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <div style="width: 36px; height: 36px; border-radius: 6px; border: 1px solid var(--border-color); overflow: hidden; background-color: #f8fafc; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                ${imageHtml}
+              </div>
+              <span style="font-weight: 500;">${item.nama_barang}</span>
+            </div>
+          </td>
+          <td>${item.nama_kategori}</td>
+          <td style="font-weight: 500;">${item.stok_total} unit</td>
+          <td style="font-weight: 600; color: ${item.stok_tersedia == 0 ? '#ef4444' : 'var(--text-primary)'}">
+            ${item.stok_tersedia} unit
+          </td>
+          <td>${conditionBadge}</td>
+          <td>
+            <div style="display: flex; gap: 4px;">
+              <button class="btn btn-secondary btn-sm" onclick="openEditModal(${item.id})">
+                <i class="ti ti-edit"></i> Edit
+              </button>
+              <button class="btn btn-danger btn-sm" onclick="deleteBarang(${item.id})">
+                <i class="ti ti-trash"></i> Hapus
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openAddModal() {
+      document.getElementById("barang-form").reset();
+      document.getElementById("barang-id").value = "";
+      hapusFotoBarang();
+      document.getElementById("modal-title").textContent = "Tambah Perlengkapan Baru";
+      openModal("barang-modal");
+    }
+
+    function openEditModal(id) {
+      const item = allBarang.find(b => b.id == id);
+      if (!item) return;
+
+      document.getElementById("barang-id").value = item.id;
+      document.getElementById("nama_barang").value = item.nama_barang;
+      document.getElementById("kode_barang").value = item.kode_barang;
+      document.getElementById("kategori_id").value = item.kategori_id;
+      document.getElementById("stok_total").value = item.stok_total;
+      document.getElementById("kondisi").value = item.kondisi;
+
+      document.getElementById("foto_barang_file").value = "";
+      if (item.foto) {
+        document.getElementById("foto_path").value = item.foto;
+        document.getElementById("foto-preview-img").src = "../" + item.foto;
+        document.getElementById("foto-preview-container").style.display = "block";
+      } else {
+        document.getElementById("foto_path").value = "";
+        document.getElementById("foto-preview-container").style.display = "none";
+        document.getElementById("foto-preview-img").src = "";
+      }
+
+      document.getElementById("modal-title").textContent = "Ubah Detail Perlengkapan";
+      openModal("barang-modal");
+    }
+
+    async function handleBarangSubmit(event) {
+      event.preventDefault();
+      const form = document.getElementById("barang-form");
+      if (!validateForm(form)) return;
+
+      const id = document.getElementById("barang-id").value;
+      const isEdit = id !== "";
+      const endpoint = isEdit ? "../api/barang/update.php" : "../api/barang/create.php";
+
+      const payload = {
+        kategori_id: document.getElementById("kategori_id").value,
+        nama_barang: document.getElementById("nama_barang").value.trim(),
+        kode_barang: document.getElementById("kode_barang").value.trim(),
+        stok_total: document.getElementById("stok_total").value,
+        kondisi: document.getElementById("kondisi").value,
+        foto: document.getElementById("foto_path").value
+      };
+
+      if (isEdit) {
+        payload.id = id;
+      }
+
+      const btn = document.getElementById("btn-submit");
+      btn.disabled = true;
+      btn.textContent = "Memproses...";
+
+      try {
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message || "Berhasil menyimpan barang", "success");
+          closeModal("barang-modal");
+          loadBarang();
+        } else {
+          showToast(data.error || "Gagal menyimpan data", "danger");
+        }
+      } catch (err) {
+        console.error(err);
+        showToast("Terjadi kesalahan jaringan", "danger");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Simpan";
+      }
+    }
+
+    function deleteBarang(id) {
+      showConfirm("Hapus Barang", "Apakah Anda yakin ingin menghapus barang ini? Semua relasi peminjaman terkait barang ini juga akan terpengaruh!", async () => {
+        try {
+          const res = await fetch("../api/barang/delete.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id })
+          });
+
+          const data = await res.json();
+          if (data.success) {
+            showToast(data.message || "Barang berhasil dihapus", "success");
+            loadBarang();
+          } else {
+            showToast(data.error || "Gagal menghapus barang", "danger");
+          }
+        } catch (err) {
+          console.error(err);
+          showToast("Kesalahan jaringan", "danger");
+        }
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SiPinjam UPT — Kelola Admin & Undangan</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <style>
+    .section-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+    @media (max-width: 1024px) {
+      .section-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .badge-success { background-color: #dcfce7; color: #15803d; }
+    .badge-warning { background-color: #fef9c3; color: #713f12; }
+    .badge-blue { background-color: #dbeafe; color: #1e40af; }
+    .badge-purple { background-color: #f3e8ff; color: #6b21a8; }
+    
+    /* Email Simulator Box */
+    .email-preview {
+      border: 1px dashed var(--accent-color);
+      border-radius: 8px;
+      padding: 16px;
+      background-color: #f8fafc;
+      margin-top: 15px;
+      font-family: sans-serif;
+    }
+    .email-header {
+      border-bottom: 1px solid #e2e8f0;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+      font-size: 12px;
+      color: #475569;
+    }
+    .email-body {
+      color: #1e293b;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .email-cta {
+      display: inline-block;
+      margin: 15px 0;
+      padding: 8px 16px;
+      background-color: var(--accent-color);
+      color: #ffffff !important;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 500;
+      font-size: 12px;
+    }
+    .copy-btn {
+      padding: 4px 8px;
+      font-size: 11px;
+      margin-left: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar-app"></aside>
+
+    <div class="main-wrapper">
+      <header class="topbar" id="topbar-app"></header>
+
+      <main class="content-container">
+        <!-- Page Header -->
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Kelola Admin & Token Undangan</h1>
+            <p class="page-subtitle">Panel kendali Super Admin untuk memonitor staf UPT, membuat token registrasi, dan mengundang admin baru</p>
+          </div>
+          <div>
+            <button class="btn btn-primary" onclick="openInviteModal()" id="btn-main-invite">
+              <i class="ti ti-mail-fast"></i> Undang Staf Baru
+            </button>
+          </div>
+        </div>
+
+        <!-- Global Verification Code Settings Card -->
+        <div class="card" id="global-token-card" style="margin-bottom: 24px; max-width: 100%;">
+          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px;">
+            <h3 class="card-title" style="margin: 0; font-size: 14px; font-weight: 600;"><i class="ti ti-shield-lock" style="margin-right: 6px; color: var(--accent-color);"></i> Kode Verifikasi Pendaftaran Admin Global</h3>
+            <span class="badge badge-purple" style="font-size: 11px;" id="global-token-badge">Aktif</span>
+          </div>
+          <div style="padding: 16px 20px; display: flex; flex-direction: column; gap: 14px;">
+            <p style="font-size: 12.5px; color: var(--text-secondary); margin: 0; line-height: 1.5;">
+              Kode verifikasi global digunakan sebagai kunci keamanan ketika staf mendaftar secara mandiri melalui form registrasi umum. Sebagai Super Admin, Anda dapat memperbarui kode rahasia ini kapan saja.
+            </p>
+            <div style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
+              <div class="form-group" style="margin: 0; flex: 1; min-width: 240px;">
+                <label class="form-label" style="font-weight: 600; margin-bottom: 6px; font-size: 12px;">Kode Verifikasi Saat Ini</label>
+                <div style="position: relative; display: flex; align-items: center;">
+                  <input type="text" id="global-token-input" class="form-control" style="font-family: monospace; letter-spacing: 1.5px; font-weight: bold; background-color: #f8fafc; padding-right: 80px;" placeholder="Memuat kode..." readonly>
+                  <button type="button" id="btn-edit-global-token" onclick="toggleEditGlobalToken()" class="btn btn-secondary btn-xs" style="position: absolute; right: 8px; padding: 4px 10px; font-size: 11px; height: 28px;">
+                    <i class="ti ti-edit" id="global-token-edit-icon"></i> <span id="global-token-edit-text">Ubah</span>
+                  </button>
+                </div>
+              </div>
+              <div id="global-token-save-actions" style="display: none; gap: 8px;">
+                <button type="button" class="btn btn-success btn-sm" onclick="saveGlobalToken()" style="padding: 8px 14px; font-size: 12px; display: inline-flex; align-items: center; gap: 4px; height: 36px;">
+                  <i class="ti ti-device-floppy"></i> Simpan
+                </button>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="cancelEditGlobalToken()" style="padding: 8px 14px; font-size: 12px; height: 36px;">
+                  Batal
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SMTP Email Settings Card -->
+        <div class="card" id="smtp-settings-card" style="margin-bottom: 24px; max-width: 100%;">
+          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+            <h3 class="card-title" style="margin: 0; font-size: 14px; font-weight: 600;"><i class="ti ti-mail-cog" style="margin-right: 6px; color: var(--accent-color);"></i> Konfigurasi SMTP Email Asli (Kirim Undangan ke HP / Gmail)</h3>
+            <span class="badge" style="font-size: 11px;" id="smtp-status-badge">Menggunakan Mock Ethereal</span>
+          </div>
+          <div style="padding: 16px 20px;">
+            <p style="font-size: 12.5px; color: var(--text-secondary); margin: 0 0 16px 0; line-height: 1.5;">
+              Secara default, pengiriman undangan menggunakan simulator / mock email (Ethereal). Agar kode registrasi admin <strong>benar-benar terkirim ke inbox email Gmail asli milik staf</strong> (bisa diakses via HP/Gmail App), silakan masukkan akun Gmail Anda dan buat <strong>App Password (Sandi Aplikasi)</strong> di Akun Google Anda.
+            </p>
+            <form id="smtp-form" onsubmit="saveSmtpConfig(event)">
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 14px;">
+                <div class="form-group" style="margin: 0;">
+                  <label class="form-label required" style="font-size: 11.5px; font-weight: 600;">SMTP Host</label>
+                  <input type="text" id="smtp_host" class="form-control" placeholder="e.g. smtp.gmail.com" required style="font-size: 13px; height: 36px;">
+                </div>
+                <div class="form-group" style="margin: 0;">
+                  <label class="form-label required" style="font-size: 11.5px; font-weight: 600;">Port</label>
+                  <input type="number" id="smtp_port" class="form-control" placeholder="e.g. 587" required style="font-size: 13px; height: 36px;">
+                </div>
+                <div class="form-group" style="margin: 0;">
+                  <label class="form-label required" style="font-size: 11.5px; font-weight: 600;">Email SMTP User / Gmail</label>
+                  <input type="email" id="smtp_user" class="form-control" placeholder="e.g. akunanda@gmail.com" required style="font-size: 13px; height: 36px;">
+                </div>
+                <div class="form-group" style="margin: 0;">
+                  <label class="form-label required" style="font-size: 11.5px; font-weight: 600;">Password SMTP / App Password</label>
+                  <input type="password" id="smtp_pass" class="form-control" placeholder="Sandi Aplikasi 16 karakter" required style="font-size: 13px; height: 36px;">
+                </div>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 10px;">
+                <div style="font-size: 11.5px; color: var(--text-secondary); max-width: 500px;">
+                  💡 <strong>Tip untuk Gmail:</strong> Gunakan host <code>smtp.gmail.com</code>, Port <code>587</code>, dan pastikan Anda menggunakan password dari fitur <strong>Sandi Aplikasi Google</strong> (Sandi 16 karakter tanpa spasi).
+                </div>
+                <button type="submit" class="btn btn-primary" id="btn-save-smtp" style="height: 36px; font-size: 12.5px; padding: 0 18px; display: inline-flex; align-items: center; gap: 6px;">
+                  <i class="ti ti-device-floppy"></i> Simpan Konfigurasi SMTP
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <div class="section-grid">
+          <!-- Left Column: Admins List -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title"><i class="ti ti-users" style="margin-right: 6px;"></i> Daftar Staf Administrator UPT</h3>
+            </div>
+            <div class="table-container" style="border: none; box-shadow: none;">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Nama</th>
+                    <th>Email</th>
+                    <th>Peran</th>
+                    <th>Kontak</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="admins-list">
+                  <tr>
+                    <td colspan="5" class="text-center" style="padding: 30px; color: var(--text-secondary)">
+                      <i class="ti ti-loader animate-spin" style="font-size: 20px;"></i> Memuat data staf...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Right Column: Invitation Tokens -->
+          <div class="card">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+              <h3 class="card-title"><i class="ti ti-ticket" style="margin-right: 6px;"></i> Token Undangan Registrasi</h3>
+              <button class="btn btn-danger btn-xs" id="btn-reset-tokens" onclick="resetAllTokens()" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; font-size: 11px; background-color: #ef4444; border-color: #ef4444; color: white;">
+                <i class="ti ti-trash"></i> Reset Semua
+              </button>
+            </div>
+            <div class="table-container" style="border: none; box-shadow: none;">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>Tujuan Email</th>
+                    <th>Token</th>
+                    <th>Status</th>
+                    <th>Dibuat Pada</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="tokens-list">
+                  <tr>
+                    <td colspan="5" class="text-center" style="padding: 30px; color: var(--text-secondary)">
+                      <i class="ti ti-loader animate-spin" style="font-size: 20px;"></i> Memuat data token...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Log Pengiriman Email Section -->
+        <div class="card" id="email-logs-card" style="margin-top: 24px; display: none;">
+          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+            <h3 class="card-title" style="margin: 0; font-size: 14px; font-weight: 600;"><i class="ti ti-mail-opened" style="margin-right: 6px; color: var(--accent-color);"></i> Log Pengiriman Email Undangan (SMTP/Test Mail)</h3>
+          </div>
+          <div class="table-container" style="border: none; box-shadow: none;">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Tujuan Email</th>
+                  <th>Subjek</th>
+                  <th>Waktu Pengiriman</th>
+                  <th>Status</th>
+                  <th>Aksi / Preview Link</th>
+                </tr>
+              </thead>
+              <tbody id="email-logs-list">
+                <tr>
+                  <td colspan="5" class="text-center" style="padding: 24px; color: var(--text-secondary)">
+                    Belum ada riwayat pengiriman email.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Invitation Modal -->
+  <div class="modal-overlay" id="invite-modal">
+    <div class="modal" style="max-width: 550px;">
+      <form id="invite-form" onsubmit="submitInvitation(event)">
+        <div class="modal-header">
+          <h3 class="modal-title">Buat Token & Undang Admin</h3>
+          <button type="button" class="modal-close" onclick="closeModal('invite-modal')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 15px;">
+            Masukkan alamat email staf UPT yang ingin Anda undang. Sistem akan menggenerasikan token registrasi unik dan menampilkan simulator email pengiriman undangan.
+          </p>
+          <div class="form-group">
+            <label class="form-label required" for="invite_email">Alamat Email Penerima</label>
+            <input type="email" id="invite_email" class="form-control" placeholder="staf-baru@gmail.com" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('invite-modal')">Batal</button>
+          <button type="submit" class="btn btn-primary btn-sm" id="btn-submit-invite">Generate & Undang</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Simulated Email Modal (Success Feedback) -->
+  <div class="modal-overlay" id="email-simulator-modal">
+    <div class="modal" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3 class="modal-title" style="color: #15803d; display: flex; align-items: center; gap: 8px;">
+          <i class="ti ti-circle-check"></i> Undangan Terkirim! (Simulasi Opsi 2)
+        </h3>
+        <button type="button" class="modal-close" onclick="closeModal('email-simulator-modal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="info-box" style="margin-top: 0; background-color: #ecfdf5; border-color: #bbf7d0;">
+          <strong style="color: #14532d;">Simulasi Sukses!</strong><br>
+          Token telah didaftarkan di server. Karena memilih <strong>Opsi 2 (Simulasi In-App)</strong>, di bawah ini adalah draft email yang dikirimkan. Anda dapat menyalin tautan registrasi di bawah untuk langsung mencoba mendaftar sebagai Admin baru!
+        </div>
+
+        <div class="email-preview">
+          <div class="email-header">
+            <strong>Dari:</strong> noreply.sipinjam.upt@gmail.com<br>
+            <strong>Kepada:</strong> <span id="sim-email-to"></span><br>
+            <strong>Subjek:</strong> Undangan Registrasi Staf Administrator SiPinjam UPT
+          </div>
+          <div class="email-body">
+            Halo Staf UPT Baru,<br><br>
+            Anda telah diundang oleh Super Admin untuk mendaftar sebagai <strong>Staf Administrator</strong> di sistem <strong>SiPinjam UPT</strong>.<br><br>
+            Silakan klik tautan di bawah ini untuk menyelesaikan pendaftaran Anda. Token ini hanya dapat digunakan sekali untuk alamat email Anda.
+            <div style="text-align: center;">
+              <a href="#" id="sim-email-link" target="_blank" class="email-cta">Daftar Sebagai Admin Sekarang</a>
+            </div>
+            Atau gunakan kode verifikasi admin berikut secara manual pada form pendaftaran:<br>
+            <div style="background-color: #f1f5f9; padding: 10px; text-align: center; font-family: monospace; font-size: 18px; letter-spacing: 2px; font-weight: bold; margin: 10px 0; border-radius: 4px; border: 1px solid #cbd5e1;" id="sim-email-token">
+              ADM-XXXXXX
+            </div>
+            Jika Anda tidak meminta pendaftaran ini, harap abaikan email ini.<br><br>
+            Hormat kami,<br>
+            <strong>Super Admin UPT</strong>
+          </div>
+        </div>
+
+        <div style="margin-top: 15px;">
+          <label class="form-label" style="font-weight: 600;">Tautan Registrasi Cepat:</label>
+          <div style="display: flex; gap: 8px; margin-top: 6px;">
+            <input type="text" id="quick-link-input" readonly class="form-control" style="font-size: 11px; background-color: #f1f5f9;">
+            <button class="btn btn-secondary btn-sm" onclick="copyQuickLink()" style="white-space: nowrap;">
+              <i class="ti ti-copy"></i> Salin Link
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary btn-sm" onclick="closeModal('email-simulator-modal')">Selesai</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/helpers.js"></script>
+  <script>
+    // Guard page
+    let currentUser = null;
+    let originalGlobalToken = "";
+
+    async function initPage() {
+      currentUser = await requireAdmin();
+      if (currentUser.role !== 'super_admin' && currentUser.role !== 'admin') {
+        showToast('Akses ditolak. Halaman ini khusus Admin.', 'danger');
+        setTimeout(() => {
+          window.location.href = 'dashboard.html';
+        }, 1500);
+        return;
+      }
+
+      renderSidebar('kelola-admin');
+      renderTopbar('Panel Super Admin UPT');
+      
+      if (currentUser.role === 'super_admin') {
+        await loadGlobalToken();
+        await loadSmtpConfig();
+        const logsCard = document.getElementById('email-logs-card');
+        if (logsCard) logsCard.style.display = 'block';
+        await loadEmailLogs();
+      } else {
+        // Regular admin: read-only, hide actions, adjust UI
+        const smtpCard = document.getElementById('smtp-settings-card');
+        if (smtpCard) smtpCard.style.display = 'none';
+
+        document.getElementById('global-token-input').value = '••••••••';
+        const editBtn = document.getElementById('btn-edit-global-token');
+        if (editBtn) editBtn.style.display = 'none';
+        
+        const mainInviteBtn = document.getElementById('btn-main-invite');
+        if (mainInviteBtn) {
+          mainInviteBtn.disabled = true;
+          mainInviteBtn.style.opacity = '0.5';
+          mainInviteBtn.title = 'Hanya Super Admin yang diizinkan mengundang staf baru.';
+        }
+        
+        const badge = document.getElementById('global-token-badge');
+        if (badge) {
+          badge.className = 'badge badge-warning';
+          badge.innerText = 'Khusus Super Admin';
+        }
+      }
+
+      // Load data
+      await loadAdmins();
+      await loadTokens();
+    }
+
+    async function loadGlobalToken() {
+      try {
+        const res = await fetch('../api/super/global-token');
+        const data = await res.json();
+        if (data.success) {
+          originalGlobalToken = data.globalAdminToken;
+          document.getElementById('global-token-input').value = originalGlobalToken;
+        } else {
+          document.getElementById('global-token-input').value = 'admin123';
+        }
+      } catch (err) {
+        console.error('Error loading global token:', err);
+        document.getElementById('global-token-input').value = 'admin123';
+      }
+    }
+
+    async function loadSmtpConfig() {
+      try {
+        const res = await fetch('../api/super/smtp-config');
+        const data = await res.json();
+        if (data.success && data.smtpConfig) {
+          const cfg = data.smtpConfig;
+          document.getElementById('smtp_host').value = cfg.host || '';
+          document.getElementById('smtp_port').value = cfg.port || 587;
+          document.getElementById('smtp_user').value = cfg.user || '';
+          document.getElementById('smtp_pass').value = cfg.pass || '';
+          
+          const badge = document.getElementById('smtp-status-badge');
+          if (badge) {
+            if (cfg.host && cfg.user) {
+              badge.className = 'badge badge-success';
+              badge.innerText = 'SMTP Aktif: ' + cfg.user;
+            } else {
+              badge.className = 'badge badge-secondary';
+              badge.innerText = 'Menggunakan Mock Ethereal';
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error loading SMTP config:', err);
+      }
+    }
+
+    async function saveSmtpConfig(e) {
+      if (e) e.preventDefault();
+      const host = document.getElementById('smtp_host').value.trim();
+      const port = document.getElementById('smtp_port').value.trim();
+      const user = document.getElementById('smtp_user').value.trim();
+      const pass = document.getElementById('smtp_pass').value.trim();
+      
+      const btn = document.getElementById('btn-save-smtp');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="ti ti-loader animate-spin"></i> Menyimpan...';
+      }
+      
+      try {
+        const res = await fetch('../api/super/smtp-config', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ host, port, user, pass })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          showToast('Konfigurasi SMTP berhasil disimpan dan aktif!', 'success');
+          await loadSmtpConfig();
+        } else {
+          showToast(data.error || 'Gagal menyimpan SMTP config.', 'danger');
+        }
+      } catch (err) {
+        console.error(err);
+        showToast('Kesalahan koneksi ke server.', 'danger');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="ti ti-device-floppy"></i> Simpan Konfigurasi SMTP';
+        }
+      }
+    }
+
+    async function loadEmailLogs() {
+      try {
+        const res = await fetch('../api/super/email-logs');
+        const data = await res.json();
+        if (data.success) {
+          const tbody = document.getElementById('email-logs-list');
+          if (!tbody) return;
+          if (!data.logs || data.logs.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center" style="padding: 24px; color: var(--text-secondary)">Belum ada riwayat pengiriman email.</td></tr>`;
+            return;
+          }
+
+          tbody.innerHTML = data.logs.slice().reverse().map(log => {
+            const date = new Date(log.sentAt).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' });
+            const statusClass = log.status === 'success' ? 'badge-success' : 'badge-danger';
+            const statusLabel = log.status === 'success' ? 'Terkirim' : 'Gagal';
+            
+            let previewBtn = '';
+            if (log.previewUrl) {
+              previewBtn = `
+                <a href="${log.previewUrl}" target="_blank" class="btn btn-secondary btn-xs" style="text-decoration: none; display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; font-size: 11px;">
+                  <i class="ti ti-mail"></i> Buka Preview Ethereal
+                </a>
+              `;
+            } else {
+              previewBtn = `<span style="font-size: 11px; color: var(--text-secondary); font-style: italic;">No preview (Real SMTP)</span>`;
+            }
+
+            return `
+              <tr>
+                <td><code>${log.to}</code></td>
+                <td><span style="font-size: 12px; font-weight: 500;">${log.subject}</span></td>
+                <td style="font-size: 11.5px; color: var(--text-secondary);">${date}</td>
+                <td><span class="badge ${statusClass}">${statusLabel}</span></td>
+                <td>${previewBtn}</td>
+              </tr>
+            `;
+          }).join('');
+        }
+      } catch (err) {
+        console.error('Error loading email logs:', err);
+      }
+    }
+
+    function toggleEditGlobalToken() {
+      const input = document.getElementById('global-token-input');
+      const saveActions = document.getElementById('global-token-save-actions');
+      const editIcon = document.getElementById('global-token-edit-icon');
+      const editText = document.getElementById('global-token-edit-text');
+
+      if (input.readOnly) {
+        // Switch to EDIT mode
+        input.readOnly = false;
+        input.style.backgroundColor = '#ffffff';
+        input.focus();
+        saveActions.style.display = 'flex';
+        editIcon.className = 'ti ti-x';
+        editText.innerText = 'Batal';
+      } else {
+        // Cancel edit
+        cancelEditGlobalToken();
+      }
+    }
+
+    function cancelEditGlobalToken() {
+      const input = document.getElementById('global-token-input');
+      const saveActions = document.getElementById('global-token-save-actions');
+      const editIcon = document.getElementById('global-token-edit-icon');
+      const editText = document.getElementById('global-token-edit-text');
+
+      input.readOnly = true;
+      input.style.backgroundColor = '#f8fafc';
+      input.value = originalGlobalToken;
+      saveActions.style.display = 'none';
+      editIcon.className = 'ti ti-edit';
+      editText.innerText = 'Ubah';
+    }
+
+    async function saveGlobalToken() {
+      const tokenVal = document.getElementById('global-token-input').value.trim();
+      if (!tokenVal || tokenVal.length < 3) {
+        showToast('Kode verifikasi global minimal harus 3 karakter.', 'danger');
+        return;
+      }
+
+      try {
+        const res = await fetch('../api/super/global-token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ token: tokenVal })
+        });
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message || 'Kode verifikasi diperbarui!', 'success');
+          originalGlobalToken = data.globalAdminToken;
+          cancelEditGlobalToken();
+        } else {
+          showToast(data.error || 'Gagal memperbarui kode.', 'danger');
+        }
+      } catch (err) {
+        console.error(err);
+        showToast('Terjadi kesalahan jaringan.', 'danger');
+      }
+    }
+
+    async function loadAdmins() {
+      try {
+        const res = await fetch('../api/super/admins');
+        const data = await res.json();
+        
+        if (data.success) {
+          const tbody = document.getElementById('admins-list');
+          if (data.admins.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center" style="padding: 30px; color: var(--text-secondary)">Tidak ada staf terdaftar</td></tr>`;
+            return;
+          }
+
+          tbody.innerHTML = data.admins.map(admin => {
+            const isSelf = admin.id === currentUser.id;
+            const isBaseAdmin = admin.id === 1; // Budi
+            const badgeClass = admin.role === 'super_admin' ? 'badge-purple' : 'badge-blue';
+            const badgeLabel = admin.role === 'super_admin' ? 'Super Admin' : 'Admin UPT';
+
+            let deleteBtn = '';
+            if (!isSelf && !isBaseAdmin && admin.role !== 'super_admin') {
+              deleteBtn = `
+                <button class="btn btn-danger btn-xs" onclick="deleteAdmin(${admin.id}, '${admin.nama}')" style="padding: 2px 6px; font-size: 11px;">
+                  <i class="ti ti-trash"></i> Hapus
+                </button>
+              `;
+            } else if (isSelf) {
+              deleteBtn = `<span style="font-size: 11px; color: var(--text-secondary)">Anda sendiri</span>`;
+            } else if (isBaseAdmin) {
+              deleteBtn = `<span style="font-size: 11px; color: var(--text-secondary)">Admin Bawaan</span>`;
+            }
+
+            return `
+              <tr>
+                <td><strong>${admin.nama}</strong></td>
+                <td><code style="font-size: 11px;">${admin.email}</code></td>
+                <td><span class="badge ${badgeClass}">${badgeLabel}</span></td>
+                <td>${admin.no_hp || '-'}</td>
+                <td>${deleteBtn}</td>
+              </tr>
+            `;
+          }).join('');
+        }
+      } catch (err) {
+        console.error('Error loading admins:', err);
+        showToast('Gagal memuat daftar staf.', 'danger');
+      }
+    }
+
+    async function loadTokens() {
+      try {
+        const res = await fetch('../api/super/tokens');
+        const data = await res.json();
+        
+        if (data.success) {
+          const tbody = document.getElementById('tokens-list');
+          if (data.tokens.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" class="text-center" style="padding: 30px; color: var(--text-secondary)">Belum ada token undangan dibuat</td></tr>`;
+            return;
+          }
+
+          tbody.innerHTML = data.tokens.slice().reverse().map(tok => {
+            const statusClass = tok.status === 'pending' ? 'badge-warning' : 'badge-success';
+            const statusLabel = tok.status === 'pending' ? 'Belum Digunakan' : 'Sudah Digunakan';
+            const formattedDate = new Date(tok.createdAt).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' });
+
+            let copyAction = '';
+            if (tok.status === 'pending') {
+              const origin = window.location.origin;
+              const pathName = window.location.pathname.split('/');
+              pathName.pop(); // remove current file
+              pathName.pop(); // remove admin dir
+              const basePath = pathName.join('/');
+              const quickLink = `${origin}${basePath}/register.html?token=${tok.token}&email=${encodeURIComponent(tok.email)}`;
+
+              copyAction = `
+                <button class="btn btn-secondary btn-xs" onclick="copyTokenText('${tok.token}')" style="padding: 2px 6px; font-size: 10px;" title="Salin Token">
+                  <i class="ti ti-key"></i>
+                </button>
+                <button class="btn btn-primary btn-xs" onclick="copyLinkText('${quickLink}')" style="padding: 2px 6px; font-size: 10px;" title="Salin Link Daftar">
+                  <i class="ti ti-link"></i>
+                </button>
+              `;
+            }
+
+            const deleteAction = `
+              <button class="btn btn-danger btn-xs" onclick="resetSingleToken('${tok.id}')" style="padding: 2px 6px; font-size: 10px; background-color: #ef4444; border-color: #ef4444; color: white;" title="Hapus / Reset Token">
+                <i class="ti ti-trash"></i>
+              </button>
+            `;
+
+            return `
+              <tr>
+                <td><code>${tok.email}</code></td>
+                <td><strong style="font-family: monospace; letter-spacing: 1px;">${tok.token}</strong></td>
+                <td><span class="badge ${statusClass}">${statusLabel}</span></td>
+                <td style="font-size: 11px; color: var(--text-secondary);">${formattedDate}</td>
+                <td>
+                  <div style="display: flex; gap: 4px;">
+                    ${copyAction}
+                    ${deleteAction}
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      } catch (err) {
+        console.error('Error loading tokens:', err);
+        showToast('Gagal memuat token undangan.', 'danger');
+      }
+    }
+
+    function openInviteModal() {
+      document.getElementById('invite-form').reset();
+      openModal('invite-modal');
+    }
+
+    async function submitInvitation(e) {
+      e.preventDefault();
+      const email = document.getElementById('invite_email').value.trim();
+      const btn = document.getElementById('btn-submit-invite');
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="ti ti-loader animate-spin"></i> Memproses...';
+
+      try {
+        const res = await fetch('../api/super/invite', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          closeModal('invite-modal');
+          showToast('Undangan berhasil didaftarkan!', 'success');
+          
+          // Show email simulator
+          document.getElementById('sim-email-to').innerText = data.token.email;
+          document.getElementById('sim-email-token').innerText = data.token.token;
+          
+          const origin = window.location.origin;
+          const pathName = window.location.pathname.split('/');
+          pathName.pop(); 
+          pathName.pop(); 
+          const basePath = pathName.join('/');
+          
+          const quickLink = `${origin}${basePath}/register.html?token=${data.token.token}&email=${encodeURIComponent(data.token.email)}`;
+          
+          document.getElementById('sim-email-link').href = quickLink;
+          document.getElementById('quick-link-input').value = quickLink;
+          
+          openModal('email-simulator-modal');
+          
+          await loadTokens();
+          if (currentUser.role === 'super_admin') {
+            // Wait slightly so async mail sender can write its success/previewUrl status to the DB state
+            setTimeout(loadEmailLogs, 1000);
+          }
+        } else {
+          showToast(data.error || 'Gagal mengirim undangan.', 'danger');
+        }
+      } catch (err) {
+        console.error(err);
+        showToast('Terjadi kesalahan jaringan.', 'danger');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'Generate & Undang';
+      }
+    }
+
+    function copyQuickLink() {
+      const input = document.getElementById('quick-link-input');
+      input.select();
+      input.setSelectionRange(0, 99999);
+      navigator.clipboard.writeText(input.value);
+      showToast('Tautan pendaftaran berhasil disalin ke clipboard!', 'success');
+    }
+
+    function copyTokenText(txt) {
+      navigator.clipboard.writeText(txt);
+      showToast('Token ' + txt + ' disalin!', 'success');
+    }
+
+    function copyLinkText(txt) {
+      navigator.clipboard.writeText(txt);
+      showToast('Link registrasi berhasil disalin!', 'success');
+    }
+
+    function deleteAdmin(id, name) {
+      showConfirm("Hapus Admin", `Apakah Anda yakin ingin menghapus akun admin "${name}"? Staf ini tidak akan bisa login lagi.`, async () => {
+        try {
+          const res = await fetch('../api/super/delete-admin', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ adminId: id })
+          });
+          const data = await res.json();
+
+          if (data.success) {
+            showToast('Akun admin berhasil dihapus!', 'success');
+            await loadAdmins();
+          } else {
+            showToast(data.error || 'Gagal menghapus admin.', 'danger');
+          }
+        } catch (err) {
+          console.error(err);
+          showToast('Terjadi kesalahan jaringan.', 'danger');
+        }
+      });
+    }
+
+    function resetSingleToken(tokenId) {
+      showConfirm("Hapus Token Undangan", "Apakah Anda yakin ingin menghapus token undangan ini?", async () => {
+        try {
+          const res = await fetch('../api/super/tokens/reset-single', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tokenId })
+          });
+          const data = await res.json();
+
+          if (data.success) {
+            showToast('Token undangan berhasil dihapus!', 'success');
+            await loadTokens();
+          } else {
+            showToast(data.error || 'Gagal menghapus token.', 'danger');
+          }
+        } catch (err) {
+          console.error(err);
+          showToast('Terjadi kesalahan jaringan.', 'danger');
+        }
+      });
+    }
+
+    function resetAllTokens() {
+      showConfirm("Reset Semua Token", "Apakah Anda yakin ingin menghapus SEMUA token undangan registrasi? Tindakan ini tidak dapat dibatalkan.", async () => {
+        try {
+          const res = await fetch('../api/super/tokens/reset-all', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+          });
+          const data = await res.json();
+
+          if (data.success) {
+            showToast('Semua token undangan berhasil dihapus!', 'success');
+            await loadTokens();
+          } else {
+            showToast(data.error || 'Gagal mereset semua token.', 'danger');
+          }
+        } catch (err) {
+          console.error(err);
+          showToast('Terjadi kesalahan jaringan.', 'danger');
+        }
+      });
+    }
+
+    // Run on mount
+    document.addEventListener('DOMContentLoaded', initPage);
+  </script>
+</body>
+</html>

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SiPinjam UPT — Kelola Persetujuan</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/components.css">
+</head>
+<body>
+
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar-app"></aside>
+
+    <div class="main-wrapper">
+      <header class="topbar" id="topbar-app"></header>
+
+      <main class="content-container">
+        <!-- Page Header -->
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Persetujuan & Penyerahan Perlengkapan</h1>
+            <p class="page-subtitle">Verifikasi dokumen pengajuan peminjaman, setujui permohonan, dan catat penyerahan alat</p>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <select id="status-filter" class="form-control" style="width: 160px;" onchange="filterLoans()">
+              <option value="all">Semua Status</option>
+              <option value="pending">Menunggu (Pending)</option>
+              <option value="approved">Disetujui (Approved)</option>
+              <option value="borrowed">Dipinjam (Borrowed)</option>
+              <option value="returned">Kembali (Returned)</option>
+              <option value="late">Terlambat (Late)</option>
+              <option value="rejected">Ditolak (Rejected)</option>
+            </select>
+            <input type="text" id="search-box" class="form-control" style="max-width: 200px;" placeholder="Cari permohonan..." oninput="filterLoans()">
+          </div>
+        </div>
+
+        <!-- Approval Table -->
+        <div class="table-container">
+          <table class="table" id="approval-table">
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>Nama Peminjam</th>
+                <th>Alat & Jumlah</th>
+                <th>Tgl Pinjam</th>
+                <th>Batas Kembali</th>
+                <th>Tipe Peminjam</th>
+                <th>Lampiran</th>
+                <th>Status</th>
+                <th>Aksi Kelola</th>
+              </tr>
+            </thead>
+            <tbody id="approval-list">
+              <tr>
+                <td colspan="9" class="text-center" style="padding: 60px 0; color: var(--text-secondary);">
+                  <i class="ti ti-loader animate-spin" style="font-size: 24px; display: block; margin-bottom: 8px;"></i>
+                  Memuat data permohonan...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Reject Reason Modal -->
+  <div class="modal-overlay" id="reject-modal">
+    <div class="modal">
+      <form id="reject-form" onsubmit="submitReject(event)">
+        <input type="hidden" id="reject-loan-id">
+        <div class="modal-header">
+          <h3 class="modal-title">Tolak Pengajuan Peminjaman</h3>
+          <button type="button" class="modal-close" onclick="closeModal('reject-modal')">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label required" for="alasan_tolak">Alasan Penolakan</label>
+            <textarea id="alasan_tolak" class="form-control" rows="3" placeholder="Masukkan alasan mengapa permohonan peminjaman ini ditolak..." required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('reject-modal')">Batal</button>
+          <button type="submit" class="btn btn-danger btn-sm" id="btn-submit-reject">Tolak Pengajuan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- View Note Modal -->
+  <div class="modal-overlay" id="view-note-modal">
+    <div class="modal" style="max-width: 450px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Catatan Penolakan</h3>
+        <button type="button" class="modal-close" onclick="closeModal('view-note-modal')">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 8px; font-weight: 500;">Alasan mengapa permohonan peminjaman ini ditolak:</p>
+        <div id="view-note-text" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color); padding: 14px; border-radius: 8px; font-size: 14px; white-space: pre-wrap; line-height: 1.6; color: var(--text-primary);">
+          -
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('view-note-modal')">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/helpers.js"></script>
+  <script>
+    let allLoans = [];
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      // 1. Guard user
+      await requireAdmin();
+
+      // 2. Render layout
+      renderSidebar("approval");
+      renderTopbar("Persetujuan Peminjaman");
+
+      // 3. Load approvals
+      loadLoans();
+    });
+
+    async function loadLoans() {
+      const tbody = document.getElementById("approval-list");
+      try {
+        const res = await fetch("../api/peminjaman/index.php");
+        const data = await res.json();
+
+        if (data.success) {
+          allLoans = data.data || [];
+          renderLoans(allLoans);
+        } else {
+          showToast(data.error || "Gagal memuat data", "danger");
+        }
+      } catch (err) {
+        console.error(err);
+        showToast("Kesalahan koneksi database", "danger");
+      }
+    }
+
+    function renderLoans(loans) {
+      const tbody = document.getElementById("approval-list");
+      tbody.innerHTML = "";
+
+      if (loans.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" class="text-center" style="padding: 60px 0; color: var(--text-secondary)">
+              <i class="ti ti-circle-check" style="font-size: 32px; color: #d4d4d4; display: block; margin-bottom: 8px;"></i>
+              Tidak ada data permohonan peminjaman.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      loans.forEach((loan, idx) => {
+        let fileLinkHtml = "-";
+        if (loan.file_surat) {
+          fileLinkHtml = `
+            <a href="../${loan.file_surat}" target="_blank" style="color: var(--accent-color); text-decoration: none; font-weight: 500;">
+              <i class="ti ti-file-text"></i> Surat Izin
+            </a>
+          `;
+        }
+
+        // Context-aware action buttons based on loan status
+        let actionsHtml = "-";
+        const status = loan.status.toLowerCase();
+
+        if (status === 'pending') {
+          actionsHtml = `
+            <div style="display: flex; gap: 4px;">
+              <button class="btn btn-success btn-sm" onclick="approveLoan(${loan.id})" title="Setujui">
+                <i class="ti ti-check"></i> Setujui
+              </button>
+              <button class="btn btn-danger btn-sm" onclick="openRejectModal(${loan.id})" title="Tolak">
+                <i class="ti ti-x"></i> Tolak
+              </button>
+            </div>
+          `;
+        } else if (status === 'approved') {
+          actionsHtml = `
+            <button class="btn btn-primary btn-sm" onclick="handoverLoan(${loan.id})" style="background-color: #2563eb;">
+              <i class="ti ti-truck-delivery"></i> Serahkan Barang
+            </button>
+          `;
+        } else if (status === 'borrowed' || status === 'late') {
+          actionsHtml = `
+            <span style="font-size: 11px; font-weight: 500; color: var(--text-secondary);">
+              Menunggu Pengembalian
+            </span>
+          `;
+        } else if (status === 'rejected') {
+          actionsHtml = `
+            <button class="btn btn-secondary btn-sm" onclick="openViewNoteModal(${loan.id})">
+              <i class="ti ti-zoom-question"></i> Lihat Catatan
+            </button>
+          `;
+        } else if (status === 'returned') {
+          actionsHtml = `
+            <span style="font-size: 11px; font-weight: 500; color: #10b981;">
+              Selesai <i class="ti ti-circle-check"></i>
+            </span>
+          `;
+        }
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${idx + 1}</td>
+          <td>
+            <div style="font-weight: 600;">${loan.nama_peminjam}</div>
+            <div style="font-size: 11px; color: var(--text-secondary)">${loan.nim_peminjam || "-"}</div>
+          </td>
+          <td>
+            <div style="font-weight: 500;">${loan.nama_barang}</div>
+            <div style="font-size: 11px; color: var(--text-secondary)">Jumlah: ${loan.jumlah} unit</div>
+          </td>
+          <td>${formatTanggal(loan.tgl_pinjam)}</td>
+          <td>${formatTanggal(loan.tgl_kembali_rencana)}</td>
+          <td>${badgeTipe(loan.tipe_peminjam)}</td>
+          <td>${fileLinkHtml}</td>
+          <td>${badgeStatus(loan.status)}</td>
+          <td>${actionsHtml}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function filterLoans() {
+      const filterVal = document.getElementById("status-filter").value;
+      const searchVal = document.getElementById("search-box").value.toLowerCase().trim();
+
+      const filtered = allLoans.filter(loan => {
+        const matchesStatus = (filterVal === 'all' || loan.status.toLowerCase() === filterVal);
+        const matchesSearch = (
+          loan.nama_peminjam.toLowerCase().includes(searchVal) ||
+          (loan.nim_peminjam && loan.nim_peminjam.toLowerCase().includes(searchVal)) ||
+          loan.nama_barang.toLowerCase().includes(searchVal) ||
+          loan.kode_barang.toLowerCase().includes(searchVal)
+        );
+        return matchesStatus && matchesSearch;
+      });
+
+      renderLoans(filtered);
+    }
+
+    function approveLoan(id) {
+      showConfirm("Setujui Permohonan", "Apakah Anda yakin menyetujui permohonan peminjaman ini?", async () => {
+        try {
+          const res = await fetch("../api/peminjaman/approve.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id, status: "approved" })
+          });
+
+          const data = await res.json();
+          if (data.success) {
+            showToast(data.message || "Permohonan disetujui", "success");
+            loadLoans();
+          } else {
+            showToast(data.error || "Gagal memproses", "danger");
+          }
+        } catch (err) {
+          console.error(err);
+          showToast("Kesalahan jaringan", "danger");
+        }
+      });
+    }
+
+    function handoverLoan(id) {
+      showConfirm("Serahkan Barang", "Apakah barang sudah diserahkan kepada peminjam? Tindakan ini akan mengubah status menjadi Dipinjam (Borrowed).", async () => {
+        try {
+          const res = await fetch("../api/peminjaman/approve.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id, status: "borrowed" })
+          });
+
+          const data = await res.json();
+          if (data.success) {
+            showToast(data.message || "Status diubah menjadi Dipinjam", "success");
+            loadLoans();
+          } else {
+            showToast(data.error || "Gagal mengubah status", "danger");
+          }
+        } catch (err) {
+          console.error(err);
+          showToast("Kesalahan jaringan", "danger");
+        }
+      });
+    }
+
+    function openRejectModal(id) {
+      document.getElementById("reject-loan-id").value = id;
+      document.getElementById("alasan_tolak").value = "";
+      openModal("reject-modal");
+    }
+
+    async function submitReject(event) {
+      event.preventDefault();
+      const id = document.getElementById("reject-loan-id").value;
+      const alasan_tolak = document.getElementById("alasan_tolak").value.trim();
+      const btn = document.getElementById("btn-submit-reject");
+
+      if (!alasan_tolak) return;
+
+      btn.disabled = true;
+      btn.textContent = "Memproses...";
+
+      try {
+        const res = await fetch("../api/peminjaman/reject.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id, alasan_tolak })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          showToast(data.message || "Permohonan ditolak", "success");
+          closeModal("reject-modal");
+          loadLoans();
+        } else {
+          showToast(data.error || "Gagal menolak permohonan", "danger");
+        }
+      } catch (err) {
+        console.error(err);
+        showToast("Kesalahan jaringan", "danger");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Tolak Pengajuan";
+      }
+    }
+
+    function openViewNoteModal(id) {
+      const loan = allLoans.find(l => l.id === id);
+      if (!loan) return;
+      document.getElementById("view-note-text").textContent = loan.alasan_tolak || "Tidak ada catatan penolakan.";
+      openModal("view-note-modal");
+    }
+  </script>
+</body>
+</html>

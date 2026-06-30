@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SiPinjam UPT — Laporan</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/components.css">
+</head>
+<body>
+
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar-app"></aside>
+
+    <div class="main-wrapper">
+      <header class="topbar" id="topbar-app"></header>
+
+      <main class="content-container">
+        <!-- Page Header -->
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Laporan & Rekap Transaksi</h1>
+            <p class="page-subtitle">Rekapitulasi lengkap seluruh pengajuan peminjaman perlengkapan kampus UPT</p>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <select id="status-filter" class="form-control" style="width: 160px;" onchange="filterLaporan()">
+              <option value="all">Semua Status</option>
+              <option value="pending">Menunggu</option>
+              <option value="approved">Disetujui</option>
+              <option value="borrowed">Sedang Dipinjam</option>
+              <option value="returned">Kembali (Selesai)</option>
+              <option value="late">Terlambat</option>
+              <option value="rejected">Ditolak</option>
+            </select>
+            <input type="text" id="search-box" class="form-control" style="max-width: 200px;" placeholder="Cari laporan..." oninput="filterLaporan()">
+            <button class="btn btn-secondary" onclick="exportLaporanCSV()">
+              <i class="ti ti-download"></i> Ekspor CSV
+            </button>
+          </div>
+        </div>
+
+        <!-- Quick Summary Mini Cards -->
+        <div class="stats-grid" style="grid-template-columns: repeat(4, 1fr); margin-bottom: 20px;">
+          <div class="stat-card" style="padding: 12px;">
+            <div class="stat-info">
+              <div class="stat-value" id="total-transaksi" style="font-size: 20px;">0</div>
+              <div class="stat-label">Total Pengajuan</div>
+            </div>
+          </div>
+          <div class="stat-card" style="padding: 12px;">
+            <div class="stat-info">
+              <div class="stat-value" id="total-selesai" style="font-size: 20px; color: #10b981;">0</div>
+              <div class="stat-label">Selesai Kembali</div>
+            </div>
+          </div>
+          <div class="stat-card" style="padding: 12px;">
+            <div class="stat-info">
+              <div class="stat-value" id="total-dipinjam" style="font-size: 20px; color: #2563eb;">0</div>
+              <div class="stat-label">Aktif Dipinjam</div>
+            </div>
+          </div>
+          <div class="stat-card" style="padding: 12px;">
+            <div class="stat-info">
+              <div class="stat-value" id="total-ditolak" style="font-size: 20px; color: #ef4444;">0</div>
+              <div class="stat-label">Ditolak</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Report Table -->
+        <div class="table-container">
+          <table class="table" id="laporan-table">
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>Peminjam</th>
+                <th>Alat & Kode</th>
+                <th>Jumlah</th>
+                <th>Tgl Pinjam</th>
+                <th>Batas Kembali</th>
+                <th>Tipe Peminjam</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="laporan-list">
+              <tr>
+                <td colspan="8" class="text-center" style="padding: 60px 0; color: var(--text-secondary);">
+                  <i class="ti ti-loader animate-spin" style="font-size: 24px; display: block; margin-bottom: 8px;"></i>
+                  Memuat data transaksi...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="../js/helpers.js"></script>
+  <script>
+    let allTransactions = [];
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      // 1. Guard admin
+      await requireAdmin();
+
+      // 2. Render layout
+      renderSidebar("laporan");
+      renderTopbar("Laporan Transaksi");
+
+      // 3. Load report details
+      loadLaporan();
+    });
+
+    async function loadLaporan() {
+      const tbody = document.getElementById("laporan-list");
+      try {
+        const res = await fetch("../api/peminjaman/index.php");
+        const data = await res.json();
+
+        if (data.success) {
+          allTransactions = data.data || [];
+          renderLaporan(allTransactions);
+          calculateSummary(allTransactions);
+        } else {
+          showToast(data.error || "Gagal memuat laporan", "danger");
+        }
+      } catch (err) {
+        console.error(err);
+        showToast("Kesalahan koneksi database", "danger");
+      }
+    }
+
+    function calculateSummary(loans) {
+      const total = loans.length;
+      let selesai = 0;
+      let dipinjam = 0;
+      let ditolak = 0;
+
+      loans.forEach(loan => {
+        const s = loan.status.toLowerCase();
+        if (s === 'returned') selesai++;
+        if (s === 'borrowed' || s === 'late') dipinjam++;
+        if (s === 'rejected') ditolak++;
+      });
+
+      document.getElementById("total-transaksi").textContent = total;
+      document.getElementById("total-selesai").textContent = selesai;
+      document.getElementById("total-dipinjam").textContent = dipinjam;
+      document.getElementById("total-ditolak").textContent = ditolak;
+    }
+
+    function renderLaporan(loans) {
+      const tbody = document.getElementById("laporan-list");
+      tbody.innerHTML = "";
+
+      if (loans.length === 0) {
+        tbody.innerHTML = `
+          <tr class="empty-row">
+            <td colspan="8" class="text-center" style="padding: 60px 0; color: var(--text-secondary)">
+              <i class="ti ti-history" style="font-size: 32px; color: #d4d4d4; display: block; margin-bottom: 8px;"></i>
+              Tidak ada data laporan peminjaman yang cocok.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      loans.forEach((loan, idx) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${idx + 1}</td>
+          <td>
+            <div style="font-weight: 600;">${loan.nama_peminjam}</div>
+            <div style="font-size: 11px; color: var(--text-secondary)">${loan.nim_peminjam || "Staff / Umum"}</div>
+          </td>
+          <td>
+            <div style="font-weight: 500;">${loan.nama_barang}</div>
+            <div style="font-family: monospace; font-size: 11px; color: var(--text-secondary)">${loan.kode_barang}</div>
+          </td>
+          <td>${loan.jumlah} unit</td>
+          <td>${formatTanggal(loan.tgl_pinjam)}</td>
+          <td>${formatTanggal(loan.tgl_kembali_rencana)}</td>
+          <td>${badgeTipe(loan.tipe_peminjam)}</td>
+          <td>${badgeStatus(loan.status)}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function filterLaporan() {
+      const filterVal = document.getElementById("status-filter").value;
+      const searchVal = document.getElementById("search-box").value.toLowerCase().trim();
+
+      const filtered = allTransactions.filter(loan => {
+        const matchesStatus = (filterVal === 'all' || loan.status.toLowerCase() === filterVal);
+        const matchesSearch = (
+          loan.nama_peminjam.toLowerCase().includes(searchVal) ||
+          (loan.nim_peminjam && loan.nim_peminjam.toLowerCase().includes(searchVal)) ||
+          loan.nama_barang.toLowerCase().includes(searchVal) ||
+          loan.kode_barang.toLowerCase().includes(searchVal)
+        );
+        return matchesStatus && matchesSearch;
+      });
+
+      renderLaporan(filtered);
+    }
+
+    function exportLaporanCSV() {
+      if (allTransactions.length === 0) {
+        showToast("Tidak ada data laporan untuk diekspor!", "warning");
+        return;
+      }
+
+      const rows = allTransactions.map(item => ({
+        "Nama Peminjam": item.nama_peminjam,
+        "NIM/NIP": item.nim_peminjam || "-",
+        "Alat": item.nama_barang,
+        "Kode Alat": item.kode_barang,
+        "Jumlah": item.jumlah,
+        "Tipe": item.tipe_peminjam,
+        "Organisasi": item.nama_organisasi || "-",
+        "Nama Kegiatan": item.nama_kegiatan || "-",
+        "Tanggal Pinjam": item.tgl_pinjam,
+        "Tanggal Kembali Rencana": item.tgl_kembali_rencana,
+        "Status": item.status,
+        "Disetujui Oleh ID": item.approved_by || "-"
+      }));
+
+      exportCSV(rows, "laporan_rekap_sipinjam.csv");
+      showToast("Laporan berhasil diekspor ke CSV", "success");
+    }
+  </script>
+</body>
+</html>
