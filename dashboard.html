@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SiPinjam UPT — Beranda</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Sidebar dynamically generated via helpers.js -->
+    <aside class="sidebar" id="sidebar-app"></aside>
+
+    <div class="main-wrapper">
+      <!-- Topbar dynamically generated via helpers.js -->
+      <header class="topbar" id="topbar-app"></header>
+
+      <main class="content-container">
+        <!-- Page Header -->
+        <div class="page-header">
+          <div>
+            <h1 class="page-title" id="welcome-text">Selamat Datang</h1>
+            <p class="page-subtitle">Sistem Informasi Peminjaman Perlengkapan Kampus UPT</p>
+          </div>
+          <a href="katalog.html" class="btn btn-primary">
+            <i class="ti ti-plus"></i> Ajukan Peminjaman
+          </a>
+        </div>
+
+        <!-- Quick Summary Cards -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon blue">
+              <i class="ti ti-history"></i>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value" id="stats-total">0</div>
+              <div class="stat-label">Total Pengajuan</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon" style="background-color: #fef9c3; color: #713f12;">
+              <i class="ti ti-loader"></i>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value" id="stats-pending">0</div>
+              <div class="stat-label">Menunggu Persetujuan</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon" style="background-color: #dbeafe; color: #1e3a8a;">
+              <i class="ti ti-package"></i>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value" id="stats-active">0</div>
+              <div class="stat-label">Sedang Dipinjam</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon" style="background-color: #ffe4e6; color: #881337;">
+              <i class="ti ti-alert-triangle"></i>
+            </div>
+            <div class="stat-info">
+              <div class="stat-value" id="stats-late">0</div>
+              <div class="stat-label">Terlambat</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Dashboard Content -->
+        <div class="bento-grid">
+          <div class="col-8">
+            <div class="card" style="min-height: 250px;">
+              <div class="card-header">
+                <h3 class="card-title">Peminjaman Terakhir & Aktif</h3>
+                <a href="riwayat.html" style="font-size: 12px; color: var(--accent-color); text-decoration: none; font-weight: 500;">Lihat Semua</a>
+              </div>
+              
+              <div class="table-container" style="border: none; box-shadow: none; margin-bottom: 0;">
+                <table class="table" id="dashboard-loans-table">
+                  <thead>
+                    <tr>
+                      <th>Nama Barang</th>
+                      <th>Jumlah</th>
+                      <th>Tgl Pinjam</th>
+                      <th>Tgl Kembali Rencana</th>
+                      <th>Status</th>
+                      <th>Sisa Hari</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dashboard-loans-body">
+                    <tr>
+                      <td colspan="6" class="text-center" style="padding: 40px 0; color: var(--text-secondary)">
+                        <i class="ti ti-loader animate-spin" style="font-size: 24px; display: block; margin-bottom: 8px;"></i>
+                        Memuat data...
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-4">
+            <!-- Rules Quickview Card -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Alur & Aturan Cepat</h3>
+              </div>
+              <ul style="padding-left: 16px; font-size: 12px; color: var(--text-secondary); display: flex; flex-direction: column; gap: 8px;">
+                <li><strong>Pengajuan:</strong> Pilih alat di katalog, isi form peminjaman lengkap.</li>
+                <li><strong>Persetujuan:</strong> Tunggu verifikasi admin (status disetujui).</li>
+                <li><strong>Pengambilan:</strong> Datang ke UPT dengan bukti di sistem.</li>
+                <li><strong>Pengembalian:</strong> Kembalikan tepat waktu demi kelancaran bersama.</li>
+                <li><strong>Keterlambatan:</strong> Terlambat >H+2 akun dibekukan sementara.</li>
+              </ul>
+              <a href="aturan.html" class="btn btn-secondary btn-sm w-full mt-4">Aturan Lengkap <i class="ti ti-arrow-right"></i></a>
+            </div>
+          </div>
+        </div>
+
+        <!-- User Sent Messages & Replies Section -->
+        <div class="card" style="min-height: 250px; margin-top: 20px;">
+          <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 class="card-title">
+              <i class="ti ti-mail-opened" style="color: var(--accent-color); margin-right: 6px;"></i>
+              Pesan & Pertanyaan Anda ke Admin
+            </h3>
+            <a href="kontak.html" class="btn btn-primary btn-sm" style="font-size: 11px; padding: 4px 10px;">
+              <i class="ti ti-send"></i> Kirim Pesan Baru
+            </a>
+          </div>
+
+          <div class="table-container" style="border: none; box-shadow: none; margin-bottom: 0;">
+            <table class="table" id="user-messages-table">
+              <thead>
+                <tr>
+                  <th>Tgl Kirim</th>
+                  <th>Subjek Pesan</th>
+                  <th>Isi Pesan Singkat</th>
+                  <th>Status Balasan</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="user-messages-body">
+                <tr>
+                  <td colspan="5" class="text-center" style="padding: 40px 0; color: var(--text-secondary)">
+                    <i class="ti ti-loader animate-spin" style="font-size: 24px; display: block; margin-bottom: 8px;"></i>
+                    Memuat pesan Anda...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Message Reply Details Modal -->
+  <div class="modal-overlay" id="user-message-detail-modal">
+    <div class="modal" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Detail Pesan & Balasan</h3>
+        <button type="button" class="modal-close" onclick="closeModal('user-message-detail-modal')">&times;</button>
+      </div>
+      <div class="modal-body" style="max-height: 480px; overflow-y: auto;">
+        
+        <!-- Original Message Details -->
+        <div style="background-color: var(--bg-secondary); padding: 14px; border-radius: 8px; margin-bottom: 16px; border: 1px solid var(--border-color);">
+          <div style="display: grid; grid-template-columns: 100px 1fr; gap: 8px; font-size: 13px; line-height: 1.5;">
+            <span style="font-weight: 600; color: var(--text-secondary);">Subjek:</span>
+            <span id="detail-msg-subjek" style="font-weight: 600; color: var(--text-primary);">-</span>
+
+            <span style="font-weight: 600; color: var(--text-secondary);">Dikirim Pada:</span>
+            <span id="detail-msg-tanggal" style="font-weight: 500; color: var(--text-secondary);">-</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" style="font-weight: 600; margin-bottom: 6px;">Pesan Anda:</label>
+          <div id="detail-msg-pesan" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color); padding: 14px; border-radius: 8px; font-size: 14px; white-space: pre-wrap; line-height: 1.6; color: var(--text-primary); max-height: 120px; overflow-y: auto;">
+            -
+          </div>
+        </div>
+
+        <!-- Official Reply Section -->
+        <div id="detail-reply-section" style="margin-top: 20px; padding-top: 16px; border-top: 1px dashed var(--border-color);">
+          <div id="detail-reply-box" style="padding: 14px; border-radius: 8px; border: 1px solid var(--border-color);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span id="detail-reply-status" style="font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;">
+                <!-- Filled dynamically -->
+              </span>
+              <span id="detail-reply-tanggal" style="font-size: 11px; font-weight: 500;">-</span>
+            </div>
+            <div id="detail-reply-text" style="font-size: 13px; line-height: 1.6; white-space: pre-wrap; padding: 10px; border-radius: 6px; margin-top: 6px;">
+              -
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('user-message-detail-modal')">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/helpers.js"></script>
+  <script>
+    let userMessages = [];
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      // 1. Guard user access
+      const user = await requireLogin();
+      
+      // 2. Render layout
+      renderSidebar("dashboard");
+      renderTopbar("Beranda");
+      
+      // Update welcome text
+      document.getElementById("welcome-text").textContent = `Selamat Datang, ${user.nama}`;
+
+      // 3. Load dynamic metrics & loan table
+      try {
+        const res = await fetch("../api/peminjaman/milik_saya.php");
+        const data = await res.json();
+        
+        if (data.success) {
+          const loans = data.data || [];
+          renderStatsAndTable(loans);
+        } else {
+          showToast(data.error || "Gagal memuat data", "danger");
+        }
+      } catch (err) {
+        console.error("Dashboard init error:", err);
+        showToast("Gagal terhubung ke database", "danger");
+      }
+
+      // 4. Load user's messages & replies
+      loadUserMessages();
+    });
+
+    async function loadUserMessages() {
+      const tbody = document.getElementById("user-messages-body");
+      try {
+        const res = await fetch("../api/kontak/milik_saya.php");
+        const data = await res.json();
+
+        if (data.success) {
+          userMessages = data.messages || [];
+          renderUserMessagesTable(userMessages);
+        } else {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="5" class="text-center" style="padding: 20px 0; color: #ef4444;">
+                <i class="ti ti-alert-circle" style="font-size: 20px; vertical-align: middle; margin-right: 4px;"></i>
+                ${data.error || 'Gagal memuat riwayat pesan.'}
+              </td>
+            </tr>
+          `;
+        }
+      } catch (err) {
+        console.error("Fetch user messages error:", err);
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" class="text-center" style="padding: 20px 0; color: #ef4444;">
+              <i class="ti ti-wifi-off" style="font-size: 20px; vertical-align: middle; margin-right: 4px;"></i>
+              Gagal menghubungi server.
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    function renderUserMessagesTable(messages) {
+      const tbody = document.getElementById("user-messages-body");
+      tbody.innerHTML = "";
+
+      if (messages.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" class="text-center" style="padding: 40px 0; color: var(--text-secondary)">
+              <i class="ti ti-mail" style="font-size: 24px; display: block; margin-bottom: 8px; color: #94a3b8;"></i>
+              Anda belum pernah mengirim pesan atau pertanyaan ke Admin.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      messages.forEach(msg => {
+        const isReplied = !!msg.replied_at;
+        const statusBadge = isReplied 
+          ? `<span class="badge" style="background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; font-size: 11px; padding: 2px 8px; border-radius: 4px;">Telah Dijawab</span>`
+          : `<span class="badge" style="background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a; font-size: 11px; padding: 2px 8px; border-radius: 4px;">Menunggu Balasan</span>`;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${formatTanggal(msg.created_at)}</td>
+          <td style="font-weight: 600; color: var(--text-primary); max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${msg.subjek}">${msg.subjek}</td>
+          <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-secondary);" title="${msg.pesan}">${msg.pesan}</td>
+          <td>${statusBadge}</td>
+          <td>
+            <button class="btn btn-secondary btn-sm" onclick="viewUserMessageDetail(${msg.id})" style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; font-size: 11px;">
+              <i class="ti ti-search"></i> Detail
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function viewUserMessageDetail(id) {
+      const msg = userMessages.find(m => m.id === id);
+      if (!msg) return;
+
+      document.getElementById("detail-msg-subjek").textContent = msg.subjek;
+      document.getElementById("detail-msg-tanggal").textContent = formatTanggal(msg.created_at);
+      document.getElementById("detail-msg-pesan").textContent = msg.pesan;
+
+      const replySection = document.getElementById("detail-reply-section");
+      const replyBox = document.getElementById("detail-reply-box");
+      const replyStatus = document.getElementById("detail-reply-status");
+      const replyTanggal = document.getElementById("detail-reply-tanggal");
+      const replyText = document.getElementById("detail-reply-text");
+
+      if (msg.replied_at) {
+        replySection.style.display = "block";
+        replyBox.style.backgroundColor = "#f0fdf4";
+        replyBox.style.borderColor = "#bbf7d0";
+        replyStatus.innerHTML = `<i class="ti ti-circle-check" style="font-size: 16px; color: #166534;"></i> Tanggapan Resmi Admin (${msg.replied_by || 'Admin'})`;
+        replyStatus.style.color = "#166534";
+        replyTanggal.textContent = formatTanggal(msg.replied_at);
+        replyTanggal.style.color = "#166534";
+        replyText.textContent = msg.reply_text || "-";
+        replyText.style.color = "#14532d";
+        replyText.style.backgroundColor = "#ffffff";
+        replyText.style.border = "1px solid #dcfce7";
+      } else {
+        replySection.style.display = "block";
+        replyBox.style.backgroundColor = "#fef3c7";
+        replyBox.style.borderColor = "#fde68a";
+        replyStatus.innerHTML = `<i class="ti ti-clock" style="font-size: 16px; color: #b45309;"></i> Pertanyaan Anda sedang diproses oleh Tim Admin UPT`;
+        replyStatus.style.color = "#b45309";
+        replyTanggal.textContent = "Segera Hadir";
+        replyTanggal.style.color = "#b45309";
+        replyText.textContent = "Mohon ditunggu, admin kami akan segera memberikan tanggapan resmi dan mengirimkan salinan jawaban ke alamat email Anda.";
+        replyText.style.color = "#78350f";
+        replyText.style.backgroundColor = "transparent";
+        replyText.style.border = "none";
+      }
+
+      openModal("user-message-detail-modal");
+    }
+
+    function renderStatsAndTable(loans) {
+      // Calculate Stats
+      let total = loans.length;
+      let pending = 0;
+      let active = 0;
+      let late = 0;
+
+      loans.forEach(loan => {
+        const s = loan.status.toLowerCase();
+        if (s === 'pending') pending++;
+        if (s === 'borrowed') active++;
+        if (s === 'late') late++;
+      });
+
+      // Render metrics
+      document.getElementById("stats-total").textContent = total;
+      document.getElementById("stats-pending").textContent = pending;
+      document.getElementById("stats-active").textContent = active;
+      document.getElementById("stats-late").textContent = late;
+
+      // Render recent loans table (Limit to 5 items)
+      const tbody = document.getElementById("dashboard-loans-body");
+      tbody.innerHTML = "";
+
+      if (loans.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" class="text-center" style="padding: 40px 0; color: var(--text-secondary)">
+              <i class="ti ti-circle-info" style="font-size: 24px; display: block; margin-bottom: 8px; color: #d4d4d4;"></i>
+              Belum ada permohonan peminjaman.
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      const recentLoans = loans.slice(0, 5);
+      recentLoans.forEach(loan => {
+        let deadlineLabel = "-";
+        if (loan.status === 'borrowed' || loan.status === 'late' || loan.status === 'approved') {
+          deadlineLabel = labelHariTersisa(loan.tgl_kembali_rencana);
+        }
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td style="font-weight: 500;">${loan.nama_barang}</td>
+          <td>${loan.jumlah} unit</td>
+          <td>${formatTanggal(loan.tgl_pinjam)}</td>
+          <td>${formatTanggal(loan.tgl_kembali_rencana)}</td>
+          <td>${badgeStatus(loan.status)}</td>
+          <td style="font-size: 12px; color: ${loan.status === 'late' ? '#b91c1c' : 'var(--text-secondary)'}; font-weight: 500;">
+            ${deadlineLabel}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+  </script>
+</body>
+</html>

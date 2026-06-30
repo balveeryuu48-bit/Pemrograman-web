@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SiPinjam UPT — Form Peminjaman</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+</head>
+<body>
+
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar-app"></aside>
+
+    <div class="main-wrapper">
+      <header class="topbar" id="topbar-app"></header>
+
+      <main class="content-container">
+        <!-- Page Header -->
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Ajukan Permohonan Peminjaman</h1>
+            <p class="page-subtitle">Formulir resmi peminjaman perlengkapan dan peralatan kampus UPT</p>
+          </div>
+        </div>
+
+        <div class="card" style="max-width: 720px; margin: 0 auto;">
+          <form id="loan-form" onsubmit="handleLoanSubmit(event)" enctype="multipart/form-data">
+            <!-- Equipment Selection Section -->
+            <div class="form-group">
+              <label class="form-label required" for="barang_id">Pilih Perlengkapan / Alat</label>
+              <select id="barang_id" name="barang_id" class="form-control" onchange="handleBarangChange(this.value)" required>
+                <option value="">-- Pilih Perlengkapan --</option>
+              </select>
+              <span id="stock-hint" style="font-size: 11px; color: var(--text-secondary); display: block; margin-top: 4px;"></span>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label required" for="tipe_peminjam">Tipe Peminjam</label>
+                <select id="tipe_peminjam" name="tipe_peminjam" class="form-control" onchange="toggleBorrowerType(this.value)" required>
+                  <option value="individu">Individu / Pribadi</option>
+                  <option value="organisasi">Organisasi / HMJ / UKM</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label required" for="jumlah">Jumlah Unit</label>
+                <input type="number" id="jumlah" name="jumlah" class="form-control" min="1" value="1" oninput="validateQuantity()" required>
+              </div>
+            </div>
+
+            <!-- Organization Specific Fields -->
+            <div id="org-fields" style="display: none; border-left: 2px solid var(--accent-color); padding-left: 14px; margin-bottom: 14px;">
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label required" for="nama_organisasi">Nama Organisasi / HMJ / UKM</label>
+                  <input type="text" id="nama_organisasi" name="nama_organisasi" class="form-control" placeholder="Contoh: HMJ Teknik Informatika">
+                </div>
+                <div class="form-group">
+                  <label class="form-label required" for="nama_kegiatan">Nama Kegiatan / Acara</label>
+                  <input type="text" id="nama_kegiatan" name="nama_kegiatan" class="form-control" placeholder="Contoh: Workshop IoT 2026">
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label required" for="file_surat">Unggah Surat Izin Kegiatan (PDF, Maks 2MB)</label>
+                <input type="file" id="file_surat" name="file_surat" class="form-control" accept=".pdf">
+              </div>
+            </div>
+
+            <!-- Contact & Usage Info -->
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label required" for="no_hp_peminjam">No. HP / WhatsApp (Aktif)</label>
+                <input type="text" id="no_hp_peminjam" name="no_hp_peminjam" class="form-control" placeholder="08XXXXXXXXXX" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label required" for="email_peminjam">Email Peminjam</label>
+                <input type="email" id="email_peminjam" name="email_peminjam" class="form-control" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label required" for="lokasi_penggunaan">Lokasi Rencana Penggunaan</label>
+              <input type="text" id="lokasi_penggunaan" name="lokasi_penggunaan" class="form-control" placeholder="Contoh: Aula Gedung D Lantai 3 / Lapangan Utama" required>
+            </div>
+
+            <!-- Dates -->
+            <div class="form-row">
+              <div class="form-group">
+                <label class="form-label required" for="tgl_pinjam">Tanggal Pinjam</label>
+                <input type="date" id="tgl_pinjam" name="tgl_pinjam" class="form-control" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label required" for="tgl_kembali_rencana">Rencana Tanggal Pengembalian</label>
+                <input type="date" id="tgl_kembali_rencana" name="tgl_kembali_rencana" class="form-control" required>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="keterangan">Keterangan / Keperluan Tambahan</label>
+              <textarea id="keterangan" name="keterangan" class="form-control" rows="3" placeholder="Deskripsikan secara detail keperluan peminjaman Anda..."></textarea>
+            </div>
+
+            <!-- Rule Compliance -->
+            <div class="form-group mt-4" style="background-color: #fafafa; padding: 12px; border-radius: var(--radius-sm); border: 1px dashed var(--border-color)">
+              <label class="form-check">
+                <input type="checkbox" id="setuju_aturan" name="setuju_aturan" value="1" required>
+                <span>Saya menyetujui seluruh <a href="aturan.html" target="_blank" style="color: var(--accent-color); font-weight: 500; text-decoration: none;">Aturan & Konsekuensi Peminjaman</a> UPT, termasuk bersedia bertanggung jawab penuh apabila terjadi kerusakan atau kehilangan barang.</span>
+              </label>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="mt-4 text-right">
+              <a href="katalog.html" class="btn btn-secondary mr-2">Batal</a>
+              <button type="submit" class="btn btn-primary" id="btn-submit">
+                Kirim Permohonan <i class="ti ti-send"></i>
+              </button>
+            </div>
+          </form>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="../js/helpers.js"></script>
+  <script>
+    let allBarang = [];
+    let selectedBarang = null;
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      // 1. Guard user
+      const user = await requireLogin();
+
+      // 2. Render layout
+      renderSidebar("form-pinjam");
+      renderTopbar("Form Peminjaman");
+
+      // Set default dates
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById("tgl_pinjam").value = today;
+      document.getElementById("tgl_pinjam").min = today;
+      
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const tomorrowStr = tomorrow.toISOString().split('T')[0];
+      document.getElementById("tgl_kembali_rencana").value = tomorrowStr;
+      document.getElementById("tgl_kembali_rencana").min = today;
+
+      // Pre-fill fields from session
+      document.getElementById("email_peminjam").value = user.email || "";
+      document.getElementById("no_hp_peminjam").value = user.no_hp || "";
+
+      // 3. Fetch equipment list
+      try {
+        const res = await fetch("../api/barang/index.php");
+        const data = await res.json();
+        if (data.success) {
+          allBarang = data.data || [];
+          populateBarangDropdown();
+          
+          // Auto-select based on URL parameter ?barang_id=X
+          const urlParams = new URLSearchParams(window.location.search);
+          const urlBarangId = urlParams.get('barang_id');
+          if (urlBarangId) {
+            document.getElementById("barang_id").value = urlBarangId;
+            handleBarangChange(urlBarangId);
+          }
+        }
+      } catch (err) {
+        console.error(err);
+        showToast("Gagal memuat daftar perlengkapan", "danger");
+      }
+    });
+
+    function populateBarangDropdown() {
+      const select = document.getElementById("barang_id");
+      allBarang.forEach(item => {
+        const option = document.createElement("option");
+        option.value = item.id;
+        option.textContent = `${item.nama_barang} (${item.kode_barang})`;
+        select.appendChild(option);
+      });
+    }
+
+    function handleBarangChange(id) {
+      selectedBarang = allBarang.find(item => item.id == id);
+      const hint = document.getElementById("stock-hint");
+      const jumlahInput = document.getElementById("jumlah");
+
+      if (selectedBarang) {
+        const stok = parseInt(selectedBarang.stok_tersedia);
+        hint.textContent = `Unit tersedia saat ini: ${stok} unit (Kondisi: ${selectedBarang.kondisi})`;
+        jumlahInput.max = stok;
+        
+        if (stok <= 0) {
+          showToast("Mohon maaf, perlengkapan ini sedang habis dipinjam.", "warning");
+        }
+      } else {
+        hint.textContent = "";
+        jumlahInput.removeAttribute("max");
+      }
+    }
+
+    function toggleBorrowerType(type) {
+      const orgFields = document.getElementById("org-fields");
+      const fileInput = document.getElementById("file_surat");
+      const orgInput = document.getElementById("nama_organisasi");
+      const actInput = document.getElementById("nama_kegiatan");
+
+      if (type === 'organisasi') {
+        orgFields.style.display = "block";
+        fileInput.required = true;
+        orgInput.required = true;
+        actInput.required = true;
+      } else {
+        orgFields.style.display = "none";
+        fileInput.required = false;
+        orgInput.required = false;
+        actInput.required = false;
+        fileInput.value = ""; // clear uploaded file
+      }
+    }
+
+    function validateQuantity() {
+      const jumlahInput = document.getElementById("jumlah");
+      const val = parseInt(jumlahInput.value);
+      
+      if (selectedBarang) {
+        const stok = parseInt(selectedBarang.stok_tersedia);
+        if (val > stok) {
+          showToast(`Jumlah unit melebihi stok tersedia (${stok} unit)!`, "danger");
+          jumlahInput.value = stok;
+        }
+      }
+    }
+
+    async function handleLoanSubmit(event) {
+      event.preventDefault();
+      const form = document.getElementById('loan-form');
+      if (!validateForm(form)) return;
+
+      const btn = document.getElementById("btn-submit");
+      btn.disabled = true;
+      btn.innerHTML = '<i class="ti ti-loader animate-spin" style="animation: spin 1s linear infinite;"></i> Mengirim...';
+
+      // Ensure keyframe exists
+      if (!document.getElementById('spin-style')) {
+        const style = document.createElement('style');
+        style.id = 'spin-style';
+        style.textContent = '@keyframes spin { 100% { transform: rotate(360deg); } }';
+        document.head.appendChild(style);
+      }
+
+      // Check dates
+      const tglPinjam = document.getElementById("tgl_pinjam").value;
+      const tglKembali = document.getElementById("tgl_kembali_rencana").value;
+      if (new Date(tglKembali) < new Date(tglPinjam)) {
+        showToast("Rencana tanggal pengembalian tidak boleh sebelum tanggal pinjam!", "danger");
+        btn.disabled = false;
+        btn.innerHTML = 'Kirim Permohonan <i class="ti ti-send"></i>';
+        return;
+      }
+
+      // Submit via FormData to fully support PDF file upload
+      const formData = new FormData(form);
+
+      try {
+        const res = await fetch("../api/peminjaman/create.php", {
+          method: "POST",
+          body: formData
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          showToast("Permohonan peminjaman berhasil dikirim!", "success");
+          setTimeout(() => {
+            window.location.href = "riwayat.html";
+          }, 1200);
+        } else {
+          showToast(data.error || "Gagal mengirim permohonan", "danger");
+          btn.disabled = false;
+          btn.innerHTML = 'Kirim Permohonan <i class="ti ti-send"></i>';
+        }
+      } catch (err) {
+        console.error(err);
+        showToast("Kesalahan koneksi database", "danger");
+        btn.disabled = false;
+        btn.innerHTML = 'Kirim Permohonan <i class="ti ti-send"></i>';
+      }
+    }
+  </script>
+</body>
+</html>

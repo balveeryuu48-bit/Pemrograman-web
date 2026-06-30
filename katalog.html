@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SiPinjam UPT — Katalog Alat</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    .filter-bar {
+      background-color: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .search-input-wrapper {
+      position: relative;
+      flex: 1;
+      max-width: 300px;
+    }
+    .search-input-wrapper i {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-secondary);
+    }
+    .search-input-wrapper input {
+      padding-left: 32px;
+    }
+    .category-tabs {
+      display: flex;
+      gap: 8px;
+    }
+    .category-tab {
+      background: none;
+      border: 1px solid var(--border-color);
+      padding: 6px 12px;
+      font-size: 13px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      color: var(--text-secondary);
+      font-weight: 500;
+      transition: all 0.1s ease;
+    }
+    .category-tab:hover {
+      background-color: #f5f5f4;
+      color: var(--text-primary);
+    }
+    .category-tab.active {
+      background-color: var(--accent-color);
+      color: #ffffff;
+      border-color: var(--accent-color);
+    }
+    .catalog-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+    }
+    .catalog-card {
+      background-color: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 180px;
+    }
+    .catalog-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+    .catalog-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--text-secondary);
+      background-color: #f5f5f4;
+      padding: 2px 6px;
+      border-radius: var(--radius-sm);
+    }
+    .catalog-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+    .catalog-info {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 12px;
+    }
+    .stock-indicator {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      margin-bottom: 12px;
+      border-top: 1px solid #fafafa;
+      padding-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar-app"></aside>
+
+    <div class="main-wrapper">
+      <header class="topbar" id="topbar-app"></header>
+
+      <main class="content-container">
+        <!-- Page Header -->
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Katalog Perlengkapan Kampus</h1>
+            <p class="page-subtitle">Daftar perlengkapan yang tersedia untuk dipinjam mahasiswa dan organisasi</p>
+          </div>
+        </div>
+
+        <!-- Filter & Search Bar -->
+        <div class="filter-bar">
+          <div class="category-tabs">
+            <button class="category-tab active" onclick="filterCategory(0, this)">Semua Alat</button>
+            <button class="category-tab" onclick="filterCategory(1, this)">Elektronik</button>
+            <button class="category-tab" onclick="filterCategory(2, this)">Meja & Kursi</button>
+          </div>
+
+          <div class="search-input-wrapper">
+            <i class="ti ti-search"></i>
+            <input type="text" id="search-box" class="form-control" placeholder="Cari perlengkapan..." oninput="handleSearch(this.value)">
+          </div>
+        </div>
+
+        <!-- Catalog Items Grid -->
+        <div class="catalog-grid" id="catalog-list">
+          <div style="grid-column: 1 / -1; text-align: center; padding: 60px 0; color: var(--text-secondary)">
+            <i class="ti ti-loader animate-spin" style="font-size: 28px; display: block; margin-bottom: 8px;"></i>
+            Memuat daftar perlengkapan...
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="../js/helpers.js"></script>
+  <script>
+    let allBarang = [];
+    let currentCategoryId = 0; // 0: Semua, 1: Elektronik, 2: Meja & Kursi
+    let searchQuery = "";
+
+    document.addEventListener("DOMContentLoaded", async () => {
+      // 1. Guard user access
+      await requireLogin();
+      
+      // 2. Render UI Layout
+      renderSidebar("katalog");
+      renderTopbar("Katalog Perlengkapan");
+
+      // 3. Fetch barang data
+      try {
+        const res = await fetch("../api/barang/index.php");
+        const data = await res.json();
+        
+        if (data.success) {
+          allBarang = data.data || [];
+          renderCatalog();
+        } else {
+          showToast(data.error || "Gagal memuat barang", "danger");
+        }
+      } catch (err) {
+        console.error(err);
+        showToast("Koneksi gagal", "danger");
+      }
+    });
+
+    function filterCategory(catId, buttonEl) {
+      // Toggle active class on tabs
+      document.querySelectorAll(".category-tab").forEach(tab => tab.classList.remove("active"));
+      buttonEl.classList.add("active");
+
+      currentCategoryId = catId;
+      renderCatalog();
+    }
+
+    function handleSearch(query) {
+      searchQuery = query.toLowerCase().trim();
+      renderCatalog();
+    }
+
+    function renderCatalog() {
+      const listContainer = document.getElementById("catalog-list");
+      listContainer.innerHTML = "";
+
+      // Filter local list
+      const filtered = allBarang.filter(item => {
+        const matchesCategory = (currentCategoryId === 0 || item.kategori_id === currentCategoryId);
+        const matchesSearch = (item.nama_barang.toLowerCase().includes(searchQuery) || item.kode_barang.toLowerCase().includes(searchQuery));
+        return matchesCategory && matchesSearch;
+      });
+
+      if (filtered.length === 0) {
+        listContainer.innerHTML = `
+          <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; background: #ffffff; border: 1px solid var(--border-color); border-radius: var(--radius-md)">
+            <i class="ti ti-search-off" style="font-size: 32px; color: #d4d4d4; display: block; margin-bottom: 8px;"></i>
+            <span style="color: var(--text-secondary)">Perlengkapan tidak ditemukan.</span>
+          </div>
+        `;
+        return;
+      }
+
+      filtered.forEach(item => {
+        const total = parseInt(item.stok_total);
+        const tersedia = parseInt(item.stok_tersedia);
+        const isOutOfStock = tersedia <= 0;
+        
+        const card = document.createElement("div");
+        card.className = "catalog-card";
+        card.innerHTML = `
+          <div>
+            <div class="catalog-header">
+              <span class="catalog-code">${item.kode_barang}</span>
+              <span class="badge ${item.kategori_id === 1 ? 'badge-organisasi' : 'badge-individu'}">
+                ${item.nama_kategori}
+              </span>
+            </div>
+            <h3 class="catalog-title">${item.nama_barang}</h3>
+            <div class="catalog-info">
+              <span>Kondisi: <strong>${item.kondisi}</strong></span>
+            </div>
+          </div>
+          
+          <div>
+            <div class="stock-indicator">
+              <span>Stok Tersedia</span>
+              <span style="font-weight: 600; color: ${isOutOfStock ? '#ef4444' : 'var(--text-primary)'}">
+                ${tersedia} / ${total} unit
+              </span>
+            </div>
+            
+            <a href="form-pinjam.html?barang_id=${item.id}" 
+               class="btn ${isOutOfStock ? 'btn-secondary' : 'btn-primary'} w-full" 
+               ${isOutOfStock ? 'style="pointer-events: none; opacity: 0.5;"' : ''}>
+              ${isOutOfStock ? 'Stok Habis' : 'Ajukan Pinjam <i class="ti ti-arrow-right"></i>'}
+            </a>
+          </div>
+        `;
+        listContainer.appendChild(card);
+      });
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SiPinjam UPT — Profil Saya</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    .profile-card-details {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .profile-detail-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .profile-detail-item:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+    .profile-detail-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background-color: var(--accent-light);
+      color: var(--accent-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .profile-detail-info {
+      display: flex;
+      flex-direction: column;
+    }
+    .profile-detail-label {
+      font-size: 11px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+    .profile-detail-value {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+    .profile-avatar-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 0;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 20px;
+    }
+    .profile-avatar-large {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background-color: var(--accent-color);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow-sm);
+    }
+    .profile-avatar-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    .profile-avatar-role {
+      font-size: 11px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar-app"></aside>
+
+    <div class="main-wrapper">
+      <header class="topbar" id="topbar-app"></header>
+
+      <main class="content-container">
+        <!-- Page Header -->
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Profil Pengguna</h1>
+            <p class="page-subtitle">Kelola informasi pribadi, nomor kontak, dan detail kartu mahasiswa Anda</p>
+          </div>
+        </div>
+
+        <div class="bento-grid">
+          <!-- Left Column: Quick Profile Details -->
+          <div class="col-4">
+            <div class="card">
+              <div class="profile-avatar-container">
+                <div class="profile-avatar-large" id="view-avatar">U</div>
+                <div class="profile-avatar-name" id="view-nama-header">Memuat...</div>
+                <div class="profile-avatar-role" id="view-role-header">Peminjam</div>
+              </div>
+
+              <div class="profile-card-details">
+                <div class="profile-detail-item">
+                  <div class="profile-detail-icon">
+                    <i class="ti ti-user"></i>
+                  </div>
+                  <div class="profile-detail-info">
+                    <span class="profile-detail-label">Nama Lengkap</span>
+                    <span class="profile-detail-value" id="view-nama">-</span>
+                  </div>
+                </div>
+
+                <div class="profile-detail-item" id="view-group-nim">
+                  <div class="profile-detail-icon">
+                    <i class="ti ti-id"></i>
+                  </div>
+                  <div class="profile-detail-info">
+                    <span class="profile-detail-label">NIM / NIDN</span>
+                    <span class="profile-detail-value" id="view-nim">-</span>
+                  </div>
+                </div>
+
+                <div class="profile-detail-item" id="view-group-status-peminjam">
+                  <div class="profile-detail-icon">
+                    <i class="ti ti-users"></i>
+                  </div>
+                  <div class="profile-detail-info">
+                    <span class="profile-detail-label">Status Peminjam</span>
+                    <span class="profile-detail-value" id="view-status-peminjam">-</span>
+                  </div>
+                </div>
+
+                <div class="profile-detail-item">
+                  <div class="profile-detail-icon">
+                    <i class="ti ti-mail"></i>
+                  </div>
+                  <div class="profile-detail-info">
+                    <span class="profile-detail-label">Alamat Email</span>
+                    <span class="profile-detail-value" id="view-email">-</span>
+                  </div>
+                </div>
+
+                <div class="profile-detail-item">
+                  <div class="profile-detail-icon">
+                    <i class="ti ti-phone"></i>
+                  </div>
+                  <div class="profile-detail-info">
+                    <span class="profile-detail-label">Nomor WhatsApp</span>
+                    <span class="profile-detail-value" id="view-no-hp">-</span>
+                  </div>
+                </div>
+
+                <div class="profile-detail-item">
+                  <div class="profile-detail-icon">
+                    <i class="ti ti-shield"></i>
+                  </div>
+                  <div class="profile-detail-info">
+                    <span class="profile-detail-label">Peran Sistem</span>
+                    <span class="profile-detail-value" id="view-role">-</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Edit Profile Form -->
+          <div class="col-8">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Edit Informasi Profil</h3>
+              </div>
+
+              <form id="profile-form" novalidate>
+                <div class="form-group">
+                  <label class="form-label required" for="input-nama">Nama Lengkap</label>
+                  <input type="text" id="input-nama" class="form-control" required placeholder="Masukkan nama lengkap Anda">
+                </div>
+
+                <div class="form-group" id="form-group-nim">
+                  <label class="form-label" for="input-nim">NIM / NIDN</label>
+                  <input type="text" id="input-nim" class="form-control" placeholder="Masukkan NIM atau NIDN Anda">
+                </div>
+
+                <div class="form-group" id="form-group-status-peminjam">
+                  <label class="form-label required" for="input-status-peminjam">Status Peminjam</label>
+                  <select id="input-status-peminjam" class="form-control" required>
+                    <option value="Mahasiswa">Mahasiswa</option>
+                    <option value="Dosen">Dosen</option>
+                    <option value="Karyawan">Karyawan</option>
+                  </select>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label required" for="input-email">Alamat Email</label>
+                    <input type="email" id="input-email" class="form-control" required placeholder="nama@email.com">
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label required" for="input-no-hp">Nomor HP / WhatsApp</label>
+                    <input type="tel" id="input-no-hp" class="form-control" required placeholder="Contoh: 081234567890">
+                  </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-color);">
+                  <button type="submit" class="btn btn-primary" id="submit-btn">
+                    <i class="ti ti-device-floppy"></i> Simpan Perubahan
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="../js/helpers.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      // 1. Guard user
+      const user = await requireLogin();
+
+      // 2. Render layout
+      renderSidebar("profile");
+      renderTopbar("Profil Saya");
+
+      // 3. Load full user details
+      await loadProfileDetails();
+
+      // 4. Handle form submission
+      const form = document.getElementById("profile-form");
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        if (!validateForm(form)) {
+          return;
+        }
+
+        const submitBtn = document.getElementById("submit-btn");
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `<i class="ti ti-loader animate-spin" style="margin-right: 4px;"></i> Menyimpan...`;
+
+        try {
+          const payload = {
+            nama: document.getElementById("input-nama").value.trim(),
+            nim: document.getElementById("input-nim").value.trim(),
+            email: document.getElementById("input-email").value.trim(),
+            no_hp: document.getElementById("input-no-hp").value.trim(),
+            status_peminjam: document.getElementById("input-status-peminjam") ? document.getElementById("input-status-peminjam").value : ""
+          };
+
+          const res = await fetch("../api/user/update_profile.php", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(payload)
+          });
+
+          const data = await res.json();
+          if (data.success) {
+            showToast(data.message || "Profil berhasil diperbarui!", "success");
+
+            // Sync legacy storage
+            const curSession = getUser() || {};
+            curSession.nama = data.user.nama;
+            curSession.email = data.user.email;
+            setUser(curSession);
+
+            // Re-render updated details
+            updateProfileUI(data.user);
+          } else {
+            showToast(data.error || "Gagal memperbarui profil", "danger");
+          }
+        } catch (err) {
+          console.error("Profile update error:", err);
+          showToast("Gagal memperbarui profil. Koneksi error.", "danger");
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = `<i class="ti ti-device-floppy"></i> Simpan Perubahan`;
+        }
+      });
+    });
+
+    async function loadProfileDetails() {
+      try {
+        const res = await fetch("../api/user/profile.php");
+        const data = await res.json();
+
+        if (data.success) {
+          updateProfileUI(data.user);
+        } else {
+          showToast(data.error || "Gagal memuat profil", "danger");
+        }
+      } catch (err) {
+        console.error("Load profile error:", err);
+        showToast("Gagal terhubung ke database", "danger");
+      }
+    }
+
+    function updateProfileUI(profile) {
+      // Headers
+      document.getElementById("view-nama-header").textContent = profile.nama;
+      const initials = profile.nama ? profile.nama.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase() : "U";
+      document.getElementById("view-avatar").textContent = initials;
+
+      const roleLabel = profile.role === 'super_admin' ? 'Super Admin' : (profile.role === 'admin' ? 'Administrator' : 'Peminjam');
+      document.getElementById("view-role-header").textContent = roleLabel;
+
+      // Card View Details
+      document.getElementById("view-nama").textContent = profile.nama;
+      document.getElementById("view-email").textContent = profile.email;
+      document.getElementById("view-no-hp").textContent = profile.no_hp || "-";
+      document.getElementById("view-role").textContent = roleLabel;
+
+      // Handle nim visibility
+      if (profile.role === 'peminjam') {
+        document.getElementById("view-nim").textContent = profile.nim || "-";
+        document.getElementById("view-group-nim").style.display = "flex";
+        document.getElementById("form-group-nim").style.display = "block";
+
+        document.getElementById("view-status-peminjam").textContent = profile.status_peminjam || "Mahasiswa";
+        document.getElementById("view-group-status-peminjam").style.display = "flex";
+        document.getElementById("form-group-status-peminjam").style.display = "block";
+        document.getElementById("input-status-peminjam").value = profile.status_peminjam || "Mahasiswa";
+      } else {
+        document.getElementById("view-group-nim").style.display = "none";
+        document.getElementById("form-group-nim").style.display = "none";
+
+        document.getElementById("view-group-status-peminjam").style.display = "none";
+        document.getElementById("form-group-status-peminjam").style.display = "none";
+      }
+
+      // Input Form Details
+      document.getElementById("input-nama").value = profile.nama;
+      document.getElementById("input-nim").value = profile.nim || "";
+      document.getElementById("input-email").value = profile.email;
+      document.getElementById("input-no-hp").value = profile.no_hp || "";
+
+      // Sync active sidebar user display
+      renderSidebar("profile");
+    }
+  </script>
+</body>
+</html>

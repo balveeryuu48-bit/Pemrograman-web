@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SiPinjam UPT — Kontak Admin</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+</head>
+<body>
+
+  <div class="app-container">
+    <aside class="sidebar" id="sidebar-app"></aside>
+
+    <div class="main-wrapper">
+      <header class="topbar" id="topbar-app"></header>
+
+      <main class="content-container">
+        <!-- Page Header -->
+        <div class="page-header">
+          <div>
+            <h1 class="page-title">Hubungi Admin UPT</h1>
+            <p class="page-subtitle">Informasi kontak resmi, jam operasional, dan saluran bantuan Unit Pelaksana Teknis</p>
+          </div>
+        </div>
+
+        <div class="bento-grid">
+          <div class="col-8">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Kirim Pesan / Pertanyaan</h3>
+              </div>
+              
+              <form id="contact-form" onsubmit="handleContactSubmit(event)">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label required" for="nama">Nama Lengkap</label>
+                    <input type="text" id="nama" class="form-control" required disabled>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label required" for="email">Alamat Email</label>
+                    <input type="email" id="email" class="form-control" required disabled>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label required" for="subjek">Subjek Pesan</label>
+                  <input type="text" id="subjek" class="form-control" placeholder="Contoh: Pertanyaan mengenai ketersediaan Kamera DSLR" required>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label required" for="pesan">Pesan Anda</label>
+                  <textarea id="pesan" class="form-control" rows="4" placeholder="Tuliskan pesan Anda secara lengkap dan sopan disini..." required></textarea>
+                </div>
+
+                <div class="text-right mt-3">
+                  <button type="submit" class="btn btn-primary">
+                    Kirim Pesan <i class="ti ti-mail-forward"></i>
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <div class="col-4">
+            <!-- Office info card -->
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Kantor UPT Pusat</h3>
+              </div>
+              
+              <div style="display: flex; flex-direction: column; gap: 14px; font-size: 13px; color: var(--text-secondary)">
+                <div class="d-flex gap-2">
+                  <i class="ti ti-map-pin" style="font-size: 18px; color: var(--accent-color)"></i>
+                  <div>
+                    <strong>Lokasi:</strong><br>
+                    Gedung Fakultas Ilmu Komputer, lantai 2, Universitas Amikom Purwokerto
+                  </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                  <i class="ti ti-clock" style="font-size: 18px; color: var(--accent-color)"></i>
+                  <div>
+                    <strong>Jam Operasional:</strong><br>
+                    Senin - Jumat: 08.00 - 16.00 WIB<br>
+                    Sabtu & Minggu: Tutup
+                  </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                  <i class="ti ti-phone" style="font-size: 18px; color: var(--accent-color)"></i>
+                  <div>
+                    <strong>Telepon / WhatsApp:</strong><br>
+                    081222333444 (Wawan Budianto)
+                  </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                  <i class="ti ti-mail" style="font-size: 18px; color: var(--accent-color)"></i>
+                  <div>
+                    <strong>Surel Resmi:</strong><br>
+                    superadmin@gmail.com
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="../js/helpers.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      // 1. Guard user
+      const user = await requireLogin();
+
+      // 2. Render layout
+      renderSidebar("kontak");
+      renderTopbar("Kontak Bantuan");
+
+      // Fill info
+      document.getElementById("nama").value = user.nama || "";
+      document.getElementById("email").value = user.email || "";
+    });
+
+    async function handleContactSubmit(event) {
+      event.preventDefault();
+      const form = document.getElementById("contact-form");
+      if (!validateForm(form)) return;
+
+      const submitBtn = form.querySelector("button[type='submit']");
+      const originalText = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="ti ti-loader animate-spin"></i> Mengirim...';
+
+      try {
+        const payload = {
+          nama: document.getElementById("nama").value,
+          email: document.getElementById("email").value,
+          subjek: document.getElementById("subjek").value,
+          pesan: document.getElementById("pesan").value
+        };
+
+        const response = await fetch("../api/kontak/kirim.php", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+        if (result.success) {
+          showToast(result.message || "Pesan Anda telah berhasil terkirim ke Admin UPT!", "success");
+          document.getElementById("subjek").value = "";
+          document.getElementById("pesan").value = "";
+        } else {
+          showToast(result.error || "Gagal mengirim pesan.", "error");
+        }
+      } catch (err) {
+        console.error(err);
+        showToast("Terjadi kesalahan jaringan.", "error");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+      }
+    }
+  </script>
+</body>
+</html>
