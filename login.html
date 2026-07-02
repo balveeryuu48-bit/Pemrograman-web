@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SiPinjam UPT — Masuk</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background-color: var(--bg-primary);
+    }
+    .login-container {
+      width: 100%;
+      max-width: 360px;
+      padding: 16px;
+    }
+    .login-card {
+      background-color: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+    .brand-section {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .brand-logo {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-sm);
+      background-color: var(--accent-light);
+      color: var(--accent-color);
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+    .brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .brand-subtitle {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+    .info-box {
+      margin-top: 20px;
+      padding: 12px 14px;
+      background-color: #f5f5f4;
+      border: 1px solid #e5e5e5;
+      border-radius: 6px;
+      font-size: 12px;
+    }
+    .info-box-title {
+      font-weight: 600;
+      color: #1c1917;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .info-item {
+      margin-top: 6px;
+      color: #44403c;
+      line-height: 1.4;
+    }
+    .info-item code {
+      background: #e5e5e5;
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-family: var(--font-mono, monospace);
+      font-size: 11px;
+      color: #1c1917;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-container" id="login-app">
+    <div class="login-card">
+      <div style="margin-bottom: 20px;">
+        <a href="landing.html" style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-secondary); text-decoration: none; font-weight: 500; transition: color 0.2s;" onmouseover="this.style.color='var(--accent-color)'" onmouseout="this.style.color='var(--text-secondary)'">
+          <i class="ti ti-arrow-left"></i> Kembali ke Beranda
+        </a>
+      </div>
+
+      <div class="brand-section">
+        <div class="brand-logo">
+          <i class="ti ti-building-warehouse"></i>
+        </div>
+        <h1 class="brand-title">SiPinjam UPT</h1>
+        <p class="brand-subtitle">Sistem Peminjaman Perlengkapan Kampus</p>
+      </div>
+
+      <form id="login-form" onsubmit="handleLoginSubmit(event)">
+        <div class="form-group">
+          <label class="form-label required" for="email">Email</label>
+          <input type="email" id="email" class="form-control" placeholder="nama@gmail.com" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label required" for="password">Password</label>
+          <input type="password" id="password" class="form-control" placeholder="••••••••" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-full mt-3" id="btn-login">
+          Masuk <i class="ti ti-arrow-right"></i>
+        </button>
+      </form>
+
+      <div class="text-center mt-4" style="font-size: 12px; color: var(--text-secondary)">
+        Belum punya akun? <a href="register.html" style="color: var(--accent-color); font-weight: 500; text-decoration: none;">Daftar disini</a>
+      </div>
+
+
+    </div>
+  </div>
+
+  <script src="js/helpers.js"></script>
+  <script>
+    // Guard: Redirect if already logged in
+    async function checkDirectAccess() {
+      try {
+        const res = await fetch('api/auth/check.php');
+        const data = await res.json();
+        if (data.loggedIn) {
+          setUser(data.user);
+          window.location.href = (data.user.role === 'admin' || data.user.role === 'super_admin')
+            ? 'admin/dashboard.html' 
+            : 'user/dashboard.html';
+        }
+      } catch (err) {
+        console.error("Auth check failed:", err);
+      }
+    }
+    checkDirectAccess();
+
+    async function handleLoginSubmit(event) {
+      event.preventDefault();
+      const form = document.getElementById('login-form');
+      if (!validateForm(form)) return;
+
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const btn = document.getElementById('btn-login');
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="ti ti-loader animate-spin" style="animation: spin 1s linear infinite;"></i> Memproses...';
+
+      // CSS keyframe injection for simple spinner
+      if (!document.getElementById('spin-style')) {
+        const style = document.createElement('style');
+        style.id = 'spin-style';
+        style.textContent = '@keyframes spin { 100% { transform: rotate(360deg); } }';
+        document.head.appendChild(style);
+      }
+
+      try {
+        const res = await fetch('api/auth/login.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        
+        const data = await res.json();
+        
+        if (data.success) {
+          showToast('Login berhasil! Mengalihkan...', 'success');
+          // Save session token if returned
+          if (data.token) {
+            StorageHelper.set("sessionToken", data.token);
+          }
+          // Save session details
+          setUser({
+            id: data.id || 1,
+            nama: data.nama,
+            role: data.role
+          });
+          
+          // Silently sync session info in background without blocking redirection
+          fetch('api/auth/check.php')
+            .then(r => r.json())
+            .then(checkData => {
+              if (checkData.loggedIn) {
+                setUser(checkData.user);
+              }
+            })
+            .catch(err => console.warn("Background session sync skipped:", err));
+
+          setTimeout(() => {
+            window.location.href = (data.role === 'admin' || data.role === 'super_admin')
+              ? 'admin/dashboard.html' 
+              : 'user/dashboard.html';
+          }, 800);
+        } else {
+          showToast(data.error || 'Email atau password salah', 'danger');
+          btn.disabled = false;
+          btn.innerHTML = 'Masuk <i class="ti ti-arrow-right"></i>';
+        }
+      } catch (err) {
+        console.error(err);
+        showToast('Gagal terhubung ke server', 'danger');
+        btn.disabled = false;
+        btn.innerHTML = 'Masuk <i class="ti ti-arrow-right"></i>';
+      }
+    }
+  </script>
+</body>
+</html>

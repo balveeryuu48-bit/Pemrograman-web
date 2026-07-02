@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SiPinjam UPT — Daftar</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background-color: var(--bg-primary);
+      padding: 20px 0;
+    }
+    .register-container {
+      width: 100%;
+      max-width: 420px;
+      padding: 16px;
+    }
+    .register-card {
+      background-color: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      box-shadow: var(--shadow-sm);
+    }
+    .brand-section {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    .brand-subtitle {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 2px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="register-container" id="register-app">
+    <div class="register-card">
+      <div style="margin-bottom: 20px;">
+        <a href="landing.html" style="display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-secondary); text-decoration: none; font-weight: 500; transition: color 0.2s;" onmouseover="this.style.color='var(--accent-color)'" onmouseout="this.style.color='var(--text-secondary)'">
+          <i class="ti ti-arrow-left"></i> Kembali ke Beranda
+        </a>
+      </div>
+
+      <div class="brand-section">
+        <h1 class="brand-title">Daftar Akun SiPinjam</h1>
+        <p class="brand-subtitle">Silakan isi formulir pendaftaran untuk meminjam perlengkapan</p>
+      </div>
+
+      <form id="register-form" onsubmit="handleRegisterSubmit(event)">
+        <div class="form-group">
+          <label class="form-label required" for="nama">Nama Lengkap</label>
+          <input type="text" id="nama" class="form-control" placeholder="Nama lengkap Anda" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label required" for="email">Email</label>
+          <input type="email" id="email" class="form-control" placeholder="nama@gmail.com" required>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label required" for="password">Password</label>
+          <input type="password" id="password" class="form-control" placeholder="Minimal 6 karakter" required>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="nim">NIM / NIDN (Opsional)</label>
+            <input type="text" id="nim" class="form-control" placeholder="Masukkan NIM atau NIDN Anda">
+          </div>
+          <div class="form-group">
+            <label class="form-label required" for="no_hp">No. HP / WhatsApp</label>
+            <input type="text" id="no_hp" class="form-control" placeholder="08XXXXXXXXXX" required>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label required" for="role">Daftar Sebagai</label>
+          <select id="role" class="form-control" onchange="toggleAdminTokenField(this.value)">
+            <option value="peminjam">Peminjam (Mahasiswa / Umum)</option>
+            <option value="admin">Staf UPT (Administrator)</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="status-peminjam-group">
+          <label class="form-label required" for="status_peminjam">Status Peminjam</label>
+          <select id="status_peminjam" class="form-control" required>
+            <option value="Mahasiswa">Mahasiswa</option>
+            <option value="Dosen">Dosen</option>
+            <option value="Karyawan">Karyawan</option>
+          </select>
+        </div>
+
+        <div class="form-group" id="admin-token-group" style="display: none;">
+          <label class="form-label required" for="admin_token">Kode Verifikasi Admin</label>
+          <input type="password" id="admin_token" class="form-control" placeholder="Masukkan kode verifikasi admin">
+          <small class="form-text" style="color: var(--text-secondary); font-size: 11px; display: block; margin-top: 4px;">Gunakan kode <code>admin123</code> untuk mendaftar sebagai admin.</small>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-full mt-2" id="btn-register">
+          Daftar Akun <i class="ti ti-user-plus"></i>
+        </button>
+      </form>
+
+      <div class="text-center mt-4" style="font-size: 12px; color: var(--text-secondary)">
+        Sudah memiliki akun? <a href="login.html" style="color: var(--accent-color); font-weight: 500; text-decoration: none;">Masuk disini</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/helpers.js"></script>
+  <script>
+    function toggleAdminTokenField(val) {
+      const group = document.getElementById('admin-token-group');
+      const tokenInput = document.getElementById('admin_token');
+      const statusPeminjamGroup = document.getElementById('status-peminjam-group');
+      const statusPeminjamInput = document.getElementById('status_peminjam');
+      if (val === 'admin') {
+        group.style.display = 'block';
+        tokenInput.required = true;
+        statusPeminjamGroup.style.display = 'none';
+        statusPeminjamInput.required = false;
+      } else {
+        group.style.display = 'none';
+        tokenInput.required = false;
+        tokenInput.value = '';
+        statusPeminjamGroup.style.display = 'block';
+        statusPeminjamInput.required = true;
+      }
+    }
+
+    async function handleRegisterSubmit(event) {
+      event.preventDefault();
+      const form = document.getElementById('register-form');
+      if (!validateForm(form)) return;
+
+      const nama = document.getElementById('nama').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const nim = document.getElementById('nim').value.trim();
+      const no_hp = document.getElementById('no_hp').value.trim();
+      const role = document.getElementById('role').value;
+      const admin_token = document.getElementById('admin_token').value;
+      const status_peminjam = role === 'peminjam' ? document.getElementById('status_peminjam').value : '';
+      const btn = document.getElementById('btn-register');
+
+      if (password.length < 6) {
+        showToast('Password minimal harus 6 karakter!', 'danger');
+        return;
+      }
+
+      if (role === 'admin' && !admin_token) {
+        showToast('Kode verifikasi admin wajib diisi!', 'danger');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="ti ti-loader animate-spin" style="animation: spin 1s linear infinite;"></i> Mendaftar...';
+
+      // Inject standard simple spinner CSS if not already there
+      if (!document.getElementById('spin-style')) {
+        const style = document.createElement('style');
+        style.id = 'spin-style';
+        style.textContent = '@keyframes spin { 100% { transform: rotate(360deg); } }';
+        document.head.appendChild(style);
+      }
+
+      try {
+        const res = await fetch('api/auth/register.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nama, email, password, nim, no_hp, role, admin_token, status_peminjam })
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+          showToast(data.message || 'Pendaftaran berhasil! Silakan login.', 'success');
+          setTimeout(() => {
+            window.location.href = 'login.html';
+          }, 1200);
+        } else {
+          showToast(data.error || 'Pendaftaran gagal.', 'danger');
+          btn.disabled = false;
+          btn.innerHTML = 'Daftar Akun <i class="ti ti-user-plus"></i>';
+        }
+      } catch (err) {
+        console.error(err);
+        showToast('Gagal terhubung ke server', 'danger');
+        btn.disabled = false;
+        btn.innerHTML = 'Daftar Akun <i class="ti ti-user-plus"></i>';
+      }
+    }
+
+    // Pre-populate if query params are available
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('token');
+      const email = urlParams.get('email');
+      
+      if (token && email) {
+        document.getElementById('role').value = 'admin';
+        toggleAdminTokenField('admin');
+        document.getElementById('email').value = email;
+        document.getElementById('admin_token').value = token;
+        showToast('Tautan pendaftaran admin berhasil dimuat!', 'success');
+      }
+    });
+  </script>
+</body>
+</html>
